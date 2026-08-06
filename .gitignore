@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Flask / App runtime
+instance/
+.webassets-cache
+
+# Generated session output files
+sessions/
+uploads/
+previews/
+
+# All audio/music files — voice guides and music library (too large for git)
+audio/*.mp3
+audio/*.m4a
+audio/*.wav
+audio/*.ogg
+audio/music_library/
+audio/yt_*
+audio/temp_*
+
+# Keep the audio folder placeholder
+!audio/.gitkeep
+
+# Database / data files
+*.db
+*.sqlite
+*.sqlite3
+music_library.db
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment / secrets
+.env
+.env.*
+config.local.py
+
+# Temp
+*.tmp
+*.bak

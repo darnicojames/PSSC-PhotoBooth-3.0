@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSSC PhotoBooth 3.0 - Live Viewfinder (External Monitor)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body.viewfinder-popout {
+            background-color: #06110b;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Outfit', sans-serif;
+            color: #ffffff;
+        }
+
+        .vf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: rgba(12, 32, 23, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 230, 118, 0.25);
+            z-index: 100;
+        }
+
+        .vf-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vf-brand h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff, #00e676);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .vf-main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+            width: 100vw;
+            height: calc(100vh - 60px);
+        }
+
+        .vf-container {
+            position: relative;
+            width: auto;
+            height: auto;
+            max-width: calc(100vw - 32px);
+            max-height: calc(100vh - 90px);
+            aspect-ratio: 340 / 238;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #00e676;
+            box-shadow: 0 0 40px rgba(0, 230, 118, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .vf-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .vf-container video.unmirrored {
+            transform: scaleX(1);
+        }
+
+        /* FULLSCREEN MODE OVERRIDES */
+        body.is-fullscreen .vf-header {
+            display: none;
+        }
+
+        body.is-fullscreen .vf-main {
+            padding: 0;
+            height: 100vh;
+        }
+
+        body.is-fullscreen .vf-container {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+        }
+
+        .vf-controls-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @keyframes glow-pulse-anim {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(0, 230, 118, 0.4)); }
+            50%       { filter: drop-shadow(0 0 18px rgba(0, 230, 118, 0.85)); }
+        }
+    </style>
+</head>
+<body class="viewfinder-popout dark-theme">
+    <!-- HEADER -->
+    <header class="vf-header">
+        <div class="vf-brand">
+            <img src="/static/img/pssc_logo.png" alt="PSSC Seal" style="width:42px; height:42px; object-fit:contain; filter: drop-shadow(0 0 10px rgba(0,230,118,0.55)); animation: glow-pulse-anim 2s ease-in-out infinite;" />
+            <h1>PSSC PhotoBooth 3.0 &bull; Viewfinder</h1>
+        </div>
+        <div class="vf-controls-bar">
+            <button id="btnToggleMirrorPopout" class="btn btn-secondary btn-sm">
+                🪞 Mirror: ON
+            </button>
+            <button id="btnFullscreenPopout" class="btn btn-primary btn-sm btn-glow">
+                ⛶ Enter Fullscreen (F)
+            </button>
+        </div>
+    </header>
+
+    <!-- VIEWFINDER DISPLAY CONTAINER -->
+    <main class="vf-main">
+        <div id="popoutContainer" class="vf-container">
+            <video id="popoutVideo" autoplay playsinline muted></video>
+            
+            <!-- FLASH EFFECT OVERLAY -->
+            <div id="popoutFlash" class="flash-overlay"></div>
+
+            <!-- COUNTDOWN OVERLAY -->
+            <div id="popoutCountdown" class="countdown-overlay hidden">
+                <span id="popoutCountdownNum">3</span>
+            </div>
+
+            <!-- SESSION STEP OVERLAY -->
+            <div id="popoutProgressBadge" class="session-progress-badge hidden">
+                Photo <span id="popoutShotNum">1</span> / <span id="popoutTotalShotNum">3</span>
+            </div>
+
+            <!-- SESSION STATUS NOTICE BANNER -->
+            <div id="popoutStatusBanner" class="session-status-banner hidden">
+                <span id="popoutStatusText">Get Ready!</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // BROADCAST CHANNEL REAL-TIME SYNC
+        const syncChannel = new BroadcastChannel('photobooth_sync');
+
+        const popoutVideo = document.getElementById('popoutVideo');
+        const popoutFlash = document.getElementById('popoutFlash');
+        const popoutCountdown = document.getElementById('popoutCountdown');
+        const popoutCountdownNum = document.getElementById('popoutCountdownNum');
+        const popoutProgressBadge = document.getElementById('popoutProgressBadge');
+        const popoutShotNum = document.getElementById('popoutShotNum');
+        const popoutTotalShotNum = document.getElementById('popoutTotalShotNum');
+        const popoutStatusBanner = document.getElementById('popoutStatusBanner');
+        const popoutStatusText = document.getElementById('popoutStatusText');
+        const popoutContainer = document.getElementById('popoutContainer');
+        const btnFullscreenPopout = document.getElementById('btnFullscreenPopout');
+        const btnToggleMirrorPopout = document.getElementById('btnToggleMirrorPopout');
+
+        let isMirrored = true;
+        let activeDeviceId = null;
+        let activeStream = null;
+
+        // Sync webcam stream matching main tab active device
+        async function initCameraStream(deviceId = null) {
+            if (activeStream) {
+                activeStream.getTracks().forEach(t => t.stop());
+            }
+
+            try {
+                const constraints = {
+                    video: deviceId && deviceId !== 'off' ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    audio: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                activeStream = stream;
+                popoutVideo.srcObject = stream;
+            } catch (err) {
+                console.warn("Popout stream error, retrying basic video:", err);
+                try {
+                    const fallback = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    activeStream = fallback;
+                    popoutVideo.srcObject = fallback;
+                } catch (e) {
+                    console.error("Failed popout stream:", e);
+                }
+            }
+        }
+
+        initCameraStream();
+
+        // Ask the main window for its current camera, mirror, filter, and
+        // framing state. This also covers filters picked before this window
+        // finished loading.
+        try {
+            syncChannel.postMessage({ type: 'POPOUT_READY' });
+        } catch (e) {}
+
+        // Listen for real-time messages from main tab
+        syncChannel.onmessage = (event) => {
+            const data = event.data;
+            if (!data) return;
+
+            switch (data.type) {
+                case 'DEVICE_CHANGE':
+                    activeDeviceId = data.deviceId;
+                    initCameraStream(activeDeviceId);
+                    break;
+
+                case 'MIRROR_CHANGE':
+                    isMirrored = data.isMirrored;
+                    if (isMirrored) {
+                        popoutVideo.classList.remove('unmirrored');
+                        btnToggleMirrorPopout.textContent = '🪞 Mirror: ON';
+                    } else {
+                        popoutVideo.classList.add('unmirrored');
+                        btnToggleMirrorPopout.textContent = '🪞 Mirror: OFF';
+                    }
+                    break;
+
+                case 'FILTER_CHANGE':
+                    applyFilter(data.filter);
+                    break;
+
+                case 'STATUS_NOTICE':
+                    if (data.text) {
+                        popoutStatusText.textContent = data.text;
+                        popoutStatusBanner.classList.remove('hidden');
+                    } else {
+                        popoutStatusBanner.classList.add('hidden');
+                    }
+                    break;
+
+                case 'COUNTDOWN_START':
+                case 'COUNTDOWN_UPDATE':
+                    popoutCountdownNum.textContent = data.count;
+                    popoutCountdown.classList.remove('hidden');
+                    break;
+
+                case 'COUNTDOWN_HIDE':
+                    popoutCountdown.classList.add('hidden');
+                    break;
+
+                case 'TRIGGER_FLASH':
+                    popoutFlash.classList.add('active');
+                    setTimeout(() => popoutFlash.classList.remove('active'), 200);
+                    break;
+
+                case 'SHOT_UPDATE':
+                    popoutShotNum.textContent = data.current;
+                    popoutTotalShotNum.textContent = data.total;
+                    popoutProgressBadge.classList.remove('hidden');
+                    break;
+
+                case 'SESSION_END':
+                    popoutProgressBadge.classList.add('hidden');
+                    popoutCountdown.classList.add('hidden');
+                    popoutStatusBanner.classList.add('hidden');
+                    popoutFlash.classList.remove('active');
+                    break;
+
+                case 'ASPECT_RATIO_CHANGE':
+                    if (data.aspectRatio) {
+                        popoutContainer.style.aspectRatio = data.aspectRatio;
+                    }
+                    break;
+            }
+        };
+
+        function applyFilter(filterName) {
+            switch (filterName) {
+                case 'bw': popoutVideo.style.filter = 'grayscale(100%)'; break;
+                case 'sepia': popoutVideo.style.filter = 'sepia(80%)'; break;
+                case 'vintage': popoutVideo.style.filter = 'contrast(120%) saturate(70%) sepia(30%)'; break;
+                case 'cyberpunk': popoutVideo.style.filter = 'hue-rotate(180deg) saturate(140%)'; break;
+                case 'vivid': popoutVideo.style.filter = 'saturate(160%) contrast(110%)'; break;
+                default: popoutVideo.style.filter = 'none'; break;
+            }
+        }
+
+        // Mirror Toggle
+        btnToggleMirrorPopout.addEventListener('click', () => {
+            isMirrored = !isMirrored;
+            if (isMirrored) {
+                popoutVideo.classList.remove('unmirrored');
+                btnToggleMirrorPopout.textContent = '🪞 Mirror: ON';
+            } else {
+                popoutVideo.classList.add('unmirrored');
+                btnToggleMirrorPopout.textContent = '🪞 Mirror: OFF';
+            }
+        });
+
+        // Fullscreen Toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                popoutContainer.requestFullscreen().catch(err => {
+                    document.documentElement.requestFullscreen();
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        btnFullscreenPopout.addEventListener('click', toggleFullscreen);
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                document.body.classList.add('is-fullscreen');
+                btnFullscreenPopout.textContent = '⛶ Exit Fullscreen (Esc)';
+            } else {
+                document.body.classList.remove('is-fullscreen');
+                btnFullscreenPopout.textContent = '⛶ Enter Fullscreen (F)';
+            }
+        });
+
+        // Keyboard Shortcut 'F' for Fullscreen
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            }
+        });
+
+        // Notify main window when popout window is closed so main window restores local viewfinder
+        window.addEventListener('beforeunload', () => {
+            try {
+                syncChannel.postMessage({ type: 'POPOUT_CLOSED' });
+            } catch(e) {}
+        });
+    </script>
+</body>
+</html>

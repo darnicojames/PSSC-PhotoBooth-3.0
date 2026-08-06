@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSSC PhotoBooth 3.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header glass-card">
+            <div class="header-brand">
+                <img src="/static/img/pssc_logo.png" alt="PSSC Seal Logo" class="header-logo-img glow-pulse" />
+                <div class="brand-text">
+                    <h1>PSSC PhotoBooth 3.0</h1>
+                </div>
+            </div>
+
+            <!-- NAV TABS -->
+            <nav class="header-nav">
+                <button class="nav-btn active" data-tab="tab-booth">
+                    <span class="icon">📸</span> Photobooth
+                </button>
+                <button class="nav-btn" data-tab="tab-studio">
+                    <span class="icon">🎨</span> Template Studio & PSD
+                </button>
+                <button class="nav-btn" data-tab="tab-gallery">
+                    <span class="icon">🖼️</span> Gallery (<span id="galleryCount">0</span>)
+                </button>
+                <button class="nav-btn" data-tab="tab-settings">
+                    <span class="icon">⚙️</span> Settings
+                </button>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT PANELS -->
+        <main class="app-main">
+
+            <!-- TAB 1: PHOTOBOOTH -->
+            <section id="tab-booth" class="tab-content active">
+                <div class="booth-grid">
+                    <!-- LEFT: LIVE WEBCAM VIEWFINDER -->
+                    <div class="viewfinder-section glass-card">
+                        <div class="section-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2>Live Viewfinder</h2>
+                                <button id="btnPopoutViewfinder" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;" title="Open Viewfinder in separate tab/window for 2nd screen monitor">
+                                    📺 Pop-out Window
+                                </button>
+                                <button id="btnFullscreenViewfinder" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;" title="Toggle Fullscreen Viewfinder">
+                                    ⛶ Fullscreen
+                                </button>
+                            </div>
+                            <div class="live-status-badge" id="cameraStatusPill">
+                                <span class="dot pulse"></span> <span id="cameraStatusText">Camera Ready</span>
+                            </div>
+                        </div>
+
+                        <!-- CAMERA CONTAINER WITH SLOT OVERLAY -->
+                        <div class="viewfinder-wrapper" id="viewfinderWrapper">
+                            <video id="webcamVideo" autoplay playsinline muted></video>
+                            <canvas id="liveOverlayCanvas"></canvas>
+                            
+                            <!-- FLASH EFFECT OVERLAY -->
+                            <div id="flashOverlay" class="flash-overlay"></div>
+
+                            <!-- COUNTDOWN OVERLAY -->
+                            <div id="countdownOverlay" class="countdown-overlay hidden">
+                                <span id="countdownNumber">3</span>
+                            </div>
+
+                            <!-- SESSION STEP OVERLAY -->
+                            <div id="sessionProgressBadge" class="session-progress-badge hidden">
+                                Photo <span id="currentShotNum">1</span> / <span id="totalShotNum">3</span>
+                            </div>
+
+                            <!-- SESSION STATUS NOTICE BANNER -->
+                            <div id="sessionStatusBanner" class="session-status-banner hidden">
+                                <span id="sessionStatusText">Get Ready!</span>
+                            </div>
+
+                            <!-- POPPED OUT PLACEHOLDER CARD -->
+                            <div id="viewfinderPoppedOutPlaceholder" class="popped-out-placeholder hidden">
+                                <div style="font-size: 3rem; margin-bottom: 8px;">📺</div>
+                                <h3 style="font-size: 1.15rem; color: var(--accent-cyan); margin-bottom: 6px;">Viewfinder Popped Out to Window</h3>
+                                <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 14px; text-align: center;">The live video feed is currently active on your external monitor / popout window.</p>
+                                <button id="btnReturnViewfinder" class="btn btn-primary btn-glow btn-sm">
+                                    📥 Return Viewfinder Here
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- FOOTER CONTROLS WRAPPER (FIXED FOOTER) -->
+                        <div class="viewfinder-controls-footer">
+                            <!-- LIVE FILTER SELECTOR -->
+                            <div class="filter-selector-bar">
+                                <span class="filter-label">✨ Live Filter:</span>
+                                <div class="filter-pills">
+                                    <button class="filter-btn active" data-filter="normal">Normal</button>
+                                    <button class="filter-btn" data-filter="vintage">Vintage</button>
+                                    <button class="filter-btn" data-filter="bw">B&W</button>
+                                    <button class="filter-btn" data-filter="sepia">Sepia</button>
+                                    <button class="filter-btn" data-filter="cyberpunk">Cyberpunk</button>
+                                    <button class="filter-btn" data-filter="vivid">Vivid</button>
+                                </div>
+                            </div>
+
+                            <!-- MAIN BOOTH CONTROLS -->
+                            <div class="booth-actions">
+                                <div class="timer-selector" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                    <div>
+                                        <label>👤 Guest Name:</label>
+                                        <input type="text" id="guestNameInput" class="form-select-sm" value="Guest" style="width: 110px; padding: 4px 8px;" placeholder="Guest Name" />
+                                    </div>
+                                    <div>
+                                        <label>🖼️ Print Layout:</label>
+                                        <select id="layoutSelect" class="form-select-sm">
+                                            <option value="double" selected>🎞️ 2 Strips Side-by-Side</option>
+                                            <option value="single">🖼️ 1 Strip Single</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label>⏱️ Delay:</label>
+                                        <select id="countdownSelect" class="form-select-sm">
+                                            <option value="3" selected>3 Seconds</option>
+                                            <option value="5">5 Seconds</option>
+                                            <option value="10">10 Seconds</option>
+                                            <option value="15">15 Seconds</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button id="btnStartBooth" class="btn btn-primary btn-glow btn-lg">
+                                    <span class="btn-icon">⚡</span> START PHOTOBOOTH SESSION
+                                </button>
+                                <button id="btnCancelBooth" class="btn btn-danger btn-lg hidden" style="background: linear-gradient(135deg, #ff0055, #d50000); color: #fff; box-shadow: 0 0 16px rgba(255, 0, 85, 0.4);">
+                                    ❌ CANCEL SESSION
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: TEMPLATE SELECTOR & PREVIEW -->
+                    <div class="template-selector-section glass-card">
+                        <div class="section-title-bar">
+                            <h2>Select Template</h2>
+                            <span class="badge" id="activeTemplateBadge">Template Selected</span>
+                        </div>
+
+                        <!-- LIVE TICKET PREVIEW CARD -->
+                        <div class="live-ticket-card">
+                            <div class="section-title-bar" style="width:100%; margin-bottom:8px;">
+                                <h3 style="font-size:0.95rem; font-weight:700; color:var(--accent-cyan);">🎫 Live Ticket Preview</h3>
+                                <span id="ticketStatusPill" class="sub-badge" style="font-size:0.7rem;">Real-time</span>
+                            </div>
+                            <div class="ticket-canvas-wrapper">
+                                <canvas id="liveTicketCanvas"></canvas>
+                            </div>
+                            <div class="template-meta-overlay" style="position:static; margin-top:8px; width:100%; text-align:center;">
+                                <h4 id="activeTemplateTitle" style="font-size:0.9rem; font-weight:700; color:var(--text-main);">Loading...</h4>
+                                <span id="activeTemplateSpecs" class="meta-tag" style="font-size:0.75rem;">0 x 0 • 3 Slots</span>
+                            </div>
+                        </div>
+
+                        <div class="template-carousel-header">
+                            <h3>Available Templates (<span id="templateCountNum">0</span>)</h3>
+                        </div>
+
+                        <!-- TEMPLATE GRID CAROUSEL -->
+                        <div class="template-cards-grid" id="templateCardsGrid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: TEMPLATE STUDIO & PSD IMPORTER -->
+            <section id="tab-studio" class="tab-content">
+                <div class="studio-grid">
+                    <!-- PSD IMPORT ZONE -->
+                    <div class="studio-upload-panel glass-card">
+                        <div class="section-title-bar">
+                            <h2>Import PSD & Frame Templates</h2>
+                        </div>
+                        <p class="description">Upload <code>.PSD</code> Photoshop files or <code>.PNG</code> / <code>.JPG</code> frame layouts. PSD layers and transparent photo slots are automatically parsed into the database!</p>
+
+                        <div class="dropzone" id="psdDropzone">
+                            <div class="dropzone-icon">📁</div>
+                            <h3>Drag & Drop PSD File Here</h3>
+                            <p>or click to browse from computer</p>
+                            <input type="file" id="psdFileInput" accept=".psd,.png,.jpg,.jpeg" class="hidden">
+                        </div>
+
+                        <div class="import-form glass-panel">
+                            <div class="form-group">
+                                <label for="templateTitleInput">Template Name / Title:</label>
+                                <input type="text" id="templateTitleInput" class="form-input" placeholder="e.g. Summer Party 2026 Strip">
+                            </div>
+                            <button id="btnUploadPSD" class="btn btn-accent btn-block">
+                                <span>🚀 Import & Save to Database</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DB TEMPLATES MANAGEMENT -->
+                    <div class="studio-manage-panel glass-card">
+                        <div class="section-title-bar">
+                            <h2>Database Templates Library</h2>
+                            <button id="btnRefreshTemplates" class="btn btn-secondary btn-sm">🔄 Refresh DB</button>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Preview</th>
+                                        <th>Title & Details</th>
+                                        <th>Dimensions</th>
+                                        <th>Slots</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dbTemplatesTableBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: GALLERY -->
+            <section id="tab-gallery" class="tab-content">
+                <div class="gallery-container glass-card">
+                    <div class="section-title-bar">
+                        <h2>Saved Photobooth Sessions</h2>
+                        <button id="btnRefreshGallery" class="btn btn-secondary btn-sm">🔄 Refresh Gallery</button>
+                    </div>
+
+                    <div class="gallery-grid" id="galleryGrid">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SETTINGS -->
+            <section id="tab-settings" class="tab-content">
+                <div class="settings-container">
+                    <div class="section-title-bar glass-card" style="padding: 16px 24px; border-radius: 16px;">
+                        <h2>⚙️ Software Settings & Hardware Configuration</h2>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Configure camera inputs, background music, Spotify track importer, and hardware options.</p>
+                    </div>
+
+                    <!-- AUDIO VISUALIZER LAUNCHER -->
+                    <div class="glass-card" style="padding: 18px 24px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid rgba(0,230,118,0.25); background: linear-gradient(135deg, rgba(0,230,118,0.06), rgba(0,240,255,0.04));">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <span style="font-size: 2rem;">🎨</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 1rem; color: #fff;">Audio Visualizer</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Avee-player style full-screen visualizer · Circle · Bars · Waveform · Particles</div>
+                            </div>
+                        </div>
+                        <button id="btnOpenVisualizer" class="btn btn-primary btn-glow btn-sm" style="white-space: nowrap; padding: 10px 22px; font-size: 0.85rem;" onclick="window.open('/visualizer', '_blank', 'width=1280,height=800')">
+                            ✨ Open Visualizer
+                        </button>
+                    </div>
+
+                    <div class="settings-grid">
+                        <!-- CAMERA & HARDWARE SETTINGS CARD -->
+                        <div class="settings-card glass-card">
+                            <div class="settings-card-header">
+                                <span style="font-size: 1.3rem;">📹</span>
+                                <h3>Camera & Video Input Settings</h3>
+                            </div>
+                            
+                            <div class="settings-group">
+                                <label for="cameraSelect">📹 Active Camera Device:</label>
+                                <select id="cameraSelect" class="form-select">
+                                    <option value="">Detecting cameras...</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-group">
+                                <label>⚙️ Camera Actions & Controls:</label>
+                                <div class="settings-actions-row">
+                                    <button id="btnRefreshCameras" class="btn btn-secondary btn-sm" title="Refresh & Scan Camera Inputs">
+                                        <span>🔄 Refresh Cameras</span>
+                                    </button>
+                                    <button id="btnToggleMirror" class="btn btn-secondary btn-sm" title="Mirror Camera Feed">
+                                        <span>🪞 Mirror: ON</span>
+                                    </button>
+                                    <button id="btnTestCamera" class="btn btn-secondary btn-sm" title="Check Camera Stream">
+                                        <span>🔍 Test Input Feed</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SPOTIFY, YOUTUBE & CUSTOM MP3 BACKGROUND MUSIC CARD -->
+                        <div class="settings-card glass-card" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.4rem; color: #1DB954;">🎧</span>
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 1.1rem;">Background Music & Spotify Player</h3>
+                                        <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);">Import, search, organize playlists, and control background tracks.</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- MAIN VIEW TABS: SONGS VS PLAYLISTS VS IMPORTER -->
+                                <div class="music-view-tabs" style="display: flex; gap: 6px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 8px;">
+                                    <button id="viewTabSongs" class="btn btn-secondary btn-sm active" style="font-size: 0.78rem; padding: 4px 12px;">
+                                        🎵 Individual Songs
+                                    </button>
+                                    <button id="viewTabPlaylists" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 12px;">
+                                        📜 Playlists & Albums
+                                    </button>
+                                    <button id="viewTabImport" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 12px;">
+                                        📥 Import Music
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- VIEW 1: INDIVIDUAL SONGS (WITH SEARCH & FILTERS) -->
+                            <div id="musicSongsView" class="music-view-panel">
+                                <!-- SEARCH & FILTER BAR -->
+                                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 200px; position: relative;">
+                                        <input type="text" id="musicSearchInput" class="form-select" placeholder="🔍 Search individual songs or artists..." style="width: 100%; padding-left: 12px; font-size: 0.85rem;" />
+                                    </div>
+                                    <div style="display: flex; gap: 4px;">
+                                        <button class="filter-pill-btn active" data-source="all">All</button>
+                                        <button class="filter-pill-btn" data-source="spotify">🟢 Spotify</button>
+                                        <button class="filter-pill-btn" data-source="youtube">🔴 YouTube</button>
+                                        <button class="filter-pill-btn" data-source="custom">📁 Local MP3</button>
+                                    </div>
+                                    <button id="btnRefreshPlaylist" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;">🔄 Refresh</button>
+                                </div>
+
+                                <!-- INDIVIDUAL SONGS CONTAINER -->
+                                <div id="musicPlaylistContainer" class="playlist-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px; background: rgba(0,0,0,0.2);">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- VIEW 2: PLAYLISTS & ALBUMS (SEPARATED TAB) -->
+                            <div id="musicPlaylistsView" class="music-view-panel hidden">
+                                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <input type="text" id="playlistSearchInput" class="form-select" placeholder="🔍 Search playlists or collections..." style="width: 100%; padding-left: 12px; font-size: 0.85rem;" />
+                                    </div>
+                                    <button id="btnRefreshPlaylistsTab" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;">🔄 Refresh</button>
+                                </div>
+
+                                <!-- PLAYLISTS CARDS CONTAINER -->
+                                <div id="playlistsGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- VIEW 3: IMPORTER TABS & FORMS -->
+                            <div id="musicImportView" class="music-view-panel hidden">
+                                <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                                    <button id="tabSpotifyImport" class="btn btn-secondary btn-sm active" style="font-size: 0.75rem; border-color: #1DB954; color: #1DB954;">
+                                        🟢 Spotify Song / Playlist
+                                    </button>
+                                    <button id="tabYoutubeImport" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; border-color: #FF0000; color: #FF0000;">
+                                        🔴 YouTube / YouTube Music
+                                    </button>
+                                    <button id="tabUploadMp3" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; border-color: #00E676; color: #00E676;">
+                                        📁 Local MP3 File
+                                    </button>
+                                </div>
+
+                                <!-- SPOTIFY INPUT FORM -->
+                                <div id="spotifyImportForm" class="settings-group">
+                                    <label for="spotifyUrlInput" style="color: #1DB954;">Paste Spotify Song or Playlist Link / Track Title:</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="spotifyUrlInput" class="form-select" placeholder="https://open.spotify.com/track/..." style="flex: 1;" />
+                                        <button id="btnImportSpotify" class="btn btn-secondary btn-sm" style="border-color: #1DB954; color: #1DB954; white-space: nowrap;">
+                                            <span>🟢 Import Spotify</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- YOUTUBE INPUT FORM -->
+                                <div id="youtubeImportForm" class="settings-group hidden">
+                                    <label for="youtubeUrlInput" style="color: #FF0000;">Paste YouTube / YouTube Music Link or Song Name:</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="youtubeUrlInput" class="form-select" placeholder="https://www.youtube.com/watch?v=..." style="flex: 1;" />
+                                        <button id="btnImportYoutube" class="btn btn-secondary btn-sm" style="border-color: #FF0000; color: #FF0000; white-space: nowrap;">
+                                            <span>🔴 Import YouTube</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- LOCAL MP3 UPLOAD FORM -->
+                                <div id="uploadMp3Form" class="settings-group hidden">
+                                    <label for="localMp3FileInput" style="color: #00E676;">Upload Custom MP3 Audio File (.mp3, .m4a, .wav, .ogg):</label>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <input type="file" id="localMp3FileInput" accept=".mp3,.m4a,.wav,.ogg,.flac,.aac" class="form-select" style="flex: 1; padding: 4px;" />
+                                        <button id="btnUploadLocalMp3" class="btn btn-secondary btn-sm" style="border-color: #00E676; color: #00E676; white-space: nowrap;">
+                                            <span>📁 Upload MP3</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- STRICTLY IN SETTINGS: SPOTIFY-STYLE AUDIO PLAYER BAR -->
+                            <div class="spotify-player-bar">
+                                <!-- LEFT: ALBUM ART & TRACK META -->
+                                <div class="sp-left">
+                                    <div class="sp-album-art">
+                                        <span id="spArtIcon">🎵</span>
+                                        <div id="audioVisualizerBars" class="eq-bars hidden">
+                                            <span class="eq-bar bar1"></span>
+                                            <span class="eq-bar bar2"></span>
+                                            <span class="eq-bar bar3"></span>
+                                            <span class="eq-bar bar4"></span>
+                                        </div>
+                                    </div>
+                                    <div class="sp-track-info">
+                                        <div class="sp-track-title-row">
+                                            <span id="playerTrackTitle">Select a track to play</span>
+                                            <span class="sp-verified-check" title="Verified Track">✔</span>
+                                        </div>
+                                        <span id="playerTrackArtist" class="sp-track-artist">PSSC Background Music</span>
+                                    </div>
+                                </div>
+
+                                <!-- CENTER: CONTROLS & TIMELINE SCRUBBER -->
+                                <div class="sp-center">
+                                    <div class="sp-controls-row">
+                                        <button id="playerBtnShuffle" class="sp-icon-btn" title="Toggle Shuffle">🔀</button>
+                                        <button id="playerBtnPrev" class="sp-icon-btn" title="Previous Track">⏮</button>
+                                        <button id="playerBtnPlayPause" class="sp-play-circle" title="Play/Pause">
+                                            <span id="spPlayIcon">▶</span>
+                                        </button>
+                                        <button id="playerBtnNext" class="sp-icon-btn" title="Next Track">⏭</button>
+                                        <button id="playerBtnRepeat" class="sp-icon-btn" title="Toggle Repeat">🔁</button>
+                                    </div>
+                                    <div style="text-align: center; min-height: 18px; margin-top: 2px;">
+                                        <span id="playerModeStatusBadge" class="player-mode-badge"></span>
+                                    </div>
+                                    <div class="sp-timeline-row">
+                                        <span id="playerCurrentTime" class="sp-time">0:00</span>
+                                        <div class="sp-scrubber-wrapper">
+                                            <input type="range" id="playerScrubber" min="0" max="100" value="0" step="0.1" class="sp-scrubber-range" />
+                                            <div id="spScrubberFill" class="sp-scrubber-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <span id="playerTotalDuration" class="sp-time">0:00</span>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT: VOLUME & SOURCE BADGE -->
+                                <div class="sp-right">
+                                    <span id="playerSourceTag" class="sp-source-badge">🟢 Spotify</span>
+                                    <div class="sp-volume-wrapper">
+                                        <button id="btnToggleBgMusic" class="sp-icon-btn" title="Mute/Unmute">🔊</button>
+                                        <input type="range" id="bgMusicVolume" min="0" max="1" step="0.05" value="0.35" class="sp-volume-range" title="Volume" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- RESULT MODAL -->
+    <div id="resultModal" class="modal-backdrop hidden">
+        <div class="modal-card glass-card animate-pop">
+            <div class="modal-header">
+                <h2>🎉 Photobooth Ready!</h2>
+                <button class="modal-close" id="btnCloseModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="result-image-wrapper">
+                    <img id="resultImage" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Photobooth Output">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnDownloadResult" href="" download="" class="btn btn-primary btn-glow">
+                    ⬇️ Download High-Res PNG
+                </a>
+                <button id="btnPrintResult" class="btn btn-secondary">
+                    🖨️ Print Output
+                </button>
+                <button id="btnCloseModalBtn" class="btn btn-outline">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYLIST DETAIL OVERLAY MODAL -->
+    <div id="playlistDetailModal" class="modal-backdrop hidden">
+        <div class="modal-card glass-card animate-pop" style="max-width: 650px; width: 92%;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="plModalIcon" style="font-size: 1.5rem;">📜</span>
+                    <div>
+                        <h2 id="plModalTitle" style="margin: 0; font-size: 1.2rem;">Playlist Tracks</h2>
+                        <span id="plModalSub" style="font-size: 0.78rem; color: var(--text-muted);">Select any song below to play</span>
+                    </div>
+                </div>
+                <button class="modal-close" id="btnClosePlaylistModal">✕</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; padding-top: 10px;">
+                <input type="text" id="playlistModalSearch" class="form-select" placeholder="🔍 Search songs in this playlist..." style="width: 100%; font-size: 0.85rem;" />
+                <div id="playlistModalTracksContainer" class="playlist-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 4px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px; background: rgba(0,0,0,0.2);">
+                    <!-- Populated dynamically when playlist card is clicked -->
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
+                    <button id="btnPlayAllInPlaylist" class="btn btn-secondary btn-sm" style="border-color: #1DB954; color: #1DB954;">
+                        ▶️ Play All
+                    </button>
+                    <button id="btnDeleteEntirePlaylist" class="btn btn-secondary btn-sm hidden" style="border-color: #ff4444; color: #ff4444;">
+                        🗑️ Delete Playlist & Songs
+                    </button>
+                </div>
+                <button id="btnClosePlaylistModalBtn" class="btn btn-outline btn-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
