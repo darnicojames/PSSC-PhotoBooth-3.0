@@ -1,6 +1,6 @@
 # PSSC PhotoBooth 3.0 🎉
 
-A professional **photobooth web application** built with Flask + vanilla JS, designed for events. Features a live webcam feed, photo templates, voice guides, music player with audio ducking, real-time audio visualizer, and external viewfinder support.
+A professional **photobooth web application** built with Flask + vanilla JS, designed for events. Features a live webcam feed, photo templates, voice guides, music player with audio ducking, real-time audio visualizer, and external viewfinder support. It is also self-hosted.
 
 ---
 
