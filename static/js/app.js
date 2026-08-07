@@ -926,10 +926,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MANDATORY EXECUTION SEQUENCE TIMELINE ---
     btnStartBooth.addEventListener('click', async () => {
-        if (!activeTemplate) {
-            alert("Please select a template first!");
+        // --- 3 CRUCIAL SETUP PRE-REQUISITE CHECKS ---
+        // 1. Camera check
+        if (!activeCameraId || activeCameraId === 'off' || !currentVideoStream) {
+            alert("⚠️ Crucial Setup Missing: Camera Device is disconnected or off!\n\nPlease connect/select an active camera in Settings before starting a session.");
             return;
         }
+
+        // 2. Template check
+        if (!activeTemplate) {
+            alert("⚠️ Crucial Setup Missing: No template selected!\n\nPlease select a photobooth template from the right panel before starting.");
+            return;
+        }
+
+        // 3. Google Sheets Database Link check
+        try {
+            const cfgRes = await fetch('/api/config');
+            const cfgData = await cfgRes.json();
+            if (!cfgData.google_sheets_url || cfgData.google_sheets_url.trim() === '') {
+                alert("⚠️ Crucial Setup Missing: Google Sheets Database Link is empty!\n\nPlease enter your Google Sheets Webhook URL in the Settings tab before starting photobooth sessions.");
+                const navSettings = document.getElementById('navSettings');
+                if (navSettings) navSettings.click();
+                return;
+            }
+        } catch (e) {
+            console.error("Config check notice:", e);
+        }
+
         if (isSessionRunning) return;
 
         const sessionToken = Symbol("session_token");
@@ -1033,14 +1056,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeSessionToken !== sessionToken) return;
 
             // Play complete audio category
-            showStatusNotice(`🎉 Photobooth Ticket Ready! 🎟️ Code: ${data.code || ''}`);
+            showStatusNotice(`🎉 Photobooth Ticket Ready! 🎟️ Queue #${data.queue_number || data.code || ''}`);
             playCelebrationFanfare();
             await playAudioCategory('complete');
             if (activeSessionToken !== sessionToken) return;
 
             if (data.success) {
-                showResultModal(data.output_url, data.code, data.filename);
+                showResultModal(data.output_url, data.queue_display || data.code, data.filename);
                 loadGallery();
+                loadSystemConfig();
             } else {
                 alert("Composite Error: " + data.error);
             }
@@ -1186,7 +1210,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const modalHeader = document.querySelector('#resultModal h2');
         if (modalHeader) {
-            modalHeader.innerHTML = `🎉 Photobooth Ready! ${code ? `<span style="font-size: 0.85rem; color: var(--accent-cyan); background: rgba(0, 240, 255, 0.15); padding: 4px 10px; border-radius: 8px; margin-left: 10px;">🎟️ CODE: ${code}</span>` : ''}`;
+            const queueLabel = code ? (String(code).startsWith('Queue') ? code : `Queue #${String(code).replace('#', '')}`) : 'Queue #1';
+            modalHeader.innerHTML = `🎉 Session Complete! ${code ? `<span style="font-size: 0.85rem; color: var(--g); background: var(--gdim); border: 1px solid var(--bg1); padding: 4px 12px; border-radius: 999px; margin-left: 10px;">🎟️ ${queueLabel}</span>` : ''}`;
         }
         resultModal.classList.remove('hidden');
     }
@@ -1204,16 +1229,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     psdDropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        psdDropzone.style.borderColor = 'var(--accent-magenta)';
+        psdDropzone.style.borderColor = 'var(--g)';
     });
 
     psdDropzone.addEventListener('dragleave', () => {
-        psdDropzone.style.borderColor = 'var(--accent-cyan)';
+        psdDropzone.style.borderColor = 'var(--b2)';
     });
 
     psdDropzone.addEventListener('drop', (e) => {
         e.preventDefault();
-        psdDropzone.style.borderColor = 'var(--accent-cyan)';
+        psdDropzone.style.borderColor = 'var(--b2)';
         if (e.dataTransfer.files.length > 0) {
             psdFileInput.files = e.dataTransfer.files;
             templateTitleInput.value = e.dataTransfer.files[0].name.replace(/\.[^/.]+$/, "");
@@ -1248,18 +1273,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 alert("✨ Template imported successfully into SQLite database!");
-                psdFileInput.value = '';
-                templateTitleInput.value = '';
+                if (psdFileInput) psdFileInput.value = '';
+                if (templateTitleInput) templateTitleInput.value = '';
                 loadTemplates();
             } else {
-                alert("Upload Error: " + data.error);
+                alert("Import Error: " + (data.error || "Failed to parse PSD/Image template."));
             }
         } catch (err) {
-            console.error("Upload error:", err);
-            alert("Failed to upload template.");
+            console.error("PSD Upload Error:", err);
+            alert("Connection or upload error occurred: " + err.message);
         } finally {
             btnUploadPSD.disabled = false;
-            btnUploadPSD.innerHTML = '<span>🚀 Import & Save to Database</span>';
+            btnUploadPSD.innerHTML = '<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="12" x2="12" y2="15"/></svg> Import &amp; Save</span>';
         }
     });
 
@@ -1317,6 +1342,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sessions.forEach(s => {
             const dateStr = new Date(s.created_at * 1000).toLocaleString();
             const dlFilename = s.output_path || `photobooth_${s.id}.png`;
+            const qNum = s.queue_number || s.id;
+            const qDisplay = s.code && String(s.code).startsWith('Queue') ? s.code : `Queue #${qNum}`;
+
             const card = document.createElement('div');
             card.className = 'gallery-card';
             card.innerHTML = `
@@ -1325,10 +1353,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="gallery-card-info">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong style="color:var(--text-main); font-size:0.88rem;">${s.guest_name ? s.guest_name + ' • ' : ''}${s.template_name || 'Photobooth'}</strong>
-                        ${s.code ? `<span style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600; background:rgba(0,240,255,0.1); padding:2px 6px; border-radius:4px;">🎟️ ${s.code}</span>` : ''}
+                        <strong style="color:var(--t1); font-size:0.85rem;">${s.guest_name ? s.guest_name + ' • ' : ''}${s.template_name || 'Photobooth'}</strong>
+                        <span style="font-size:0.75rem; color:var(--g); font-weight:700; background:var(--gdim); border:1px solid var(--bg1); padding:2px 8px; border-radius:999px;">🎟️ ${qDisplay}</span>
                     </div>
-                    <small>${dateStr}</small>
+                    <small style="color:var(--t3);">${dateStr}</small>
                 </div>
                 <div class="gallery-card-actions">
                     <a href="${s.output_url}" download="${dlFilename}" class="btn-download-sess">⬇️ Download High-Res</a>
@@ -2383,7 +2411,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(renderBklitTelemetryChart, 2000);
 
+    // --- CLOUD & DATABASE CONFIGURATION HANDLERS ---
+    const googleSheetsUrlInput = document.getElementById('googleSheetsUrlInput');
+    const googleDriveUrlInput = document.getElementById('googleDriveUrlInput');
+    const btnSaveCloudConfig = document.getElementById('btnSaveCloudConfig');
+    const btnTestQueueSync = document.getElementById('btnTestQueueSync');
+    const topbarQueueText = document.getElementById('topbarQueueText');
+
+    async function loadSystemConfig() {
+        try {
+            const res = await fetch('/api/config');
+            const data = await res.json();
+            if (data.success) {
+                if (googleSheetsUrlInput) googleSheetsUrlInput.value = data.google_sheets_url || '';
+                if (googleDriveUrlInput) googleDriveUrlInput.value = data.google_drive_url || '';
+                if (topbarQueueText) topbarQueueText.textContent = data.queue_display || 'Queue #1';
+            }
+        } catch (err) {
+            console.error("Config fetch error:", err);
+        }
+    }
+
+    if (btnSaveCloudConfig) {
+        btnSaveCloudConfig.addEventListener('click', async () => {
+            const sheetsUrl = googleSheetsUrlInput ? googleSheetsUrlInput.value.trim() : '';
+            const driveUrl = googleDriveUrlInput ? googleDriveUrlInput.value.trim() : '';
+
+            btnSaveCloudConfig.disabled = true;
+            btnSaveCloudConfig.innerHTML = '<span>⏳ Saving...</span>';
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        google_sheets_url: sheetsUrl,
+                        google_drive_url: driveUrl
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("✅ Google Sheets & Drive database settings saved successfully!");
+                    logUserAction("Saved Cloud Database Settings", `Sheets: ${sheetsUrl}, Drive: ${driveUrl}`);
+                } else {
+                    alert("Error saving settings: " + (data.error || "Failed to save"));
+                }
+            } catch (err) {
+                alert("Failed to save cloud config: " + err.message);
+            } finally {
+                btnSaveCloudConfig.disabled = false;
+                btnSaveCloudConfig.innerHTML = '<span>💾 Save Settings</span>';
+            }
+        });
+    }
+
+    if (btnTestQueueSync) {
+        btnTestQueueSync.addEventListener('click', async () => {
+            const sheetsUrl = googleSheetsUrlInput ? googleSheetsUrlInput.value.trim() : '';
+            if (!sheetsUrl) {
+                alert("Please enter a Google Sheets Webhook URL first!");
+                return;
+            }
+
+            btnTestQueueSync.disabled = true;
+            btnTestQueueSync.innerHTML = '<span>⚡ Testing...</span>';
+
+            try {
+                const res = await fetch('/api/queue/status');
+                const qData = await res.json();
+                const nextQ = qData.next_queue_number || 1;
+
+                showStatusNotice(`⚡ Testing Live Queue Sync to Google Sheets (Queue #${nextQ})...`);
+                
+                const testPayload = {
+                    date: new Date().toLocaleString(),
+                    name: 'Test Queue Sync',
+                    queue_number: nextQ,
+                    queue_display: `Queue #${nextQ}`,
+                    code: `Queue #${nextQ}`,
+                    photos: 3,
+                    filename: 'TEST_QUEUE_SYNC.png',
+                    paid: 'TEST_PAID'
+                };
+
+                await fetch(sheetsUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testPayload)
+                });
+
+                alert(`✅ Test Live Queue ping sent to Google Sheets for Queue #${nextQ}! Check your Google Sheet.`);
+                hideStatusNotice();
+            } catch (err) {
+                alert("Queue sync test notice: " + err.message);
+                hideStatusNotice();
+            } finally {
+                btnTestQueueSync.disabled = false;
+                btnTestQueueSync.innerHTML = '<span>⚡ Test Queue Sync</span>';
+            }
+        });
+    }
+
     // --- INIT ---
+    loadSystemConfig();
     initCameraDevices();
     loadTemplates();
     loadMusicPlaylist();

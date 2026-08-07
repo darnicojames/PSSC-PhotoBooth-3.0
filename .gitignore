@@ -29,13 +29,12 @@ uploads/
 previews/
 
 # All audio/music files — voice guides and music library (too large for git)
-audio/*.mp3
-audio/*.m4a
-audio/*.wav
-audio/*.ogg
-audio/music_library/
-audio/yt_*
-audio/temp_*
+audio/
+static/audio/
+scratch_audio/
+
+# Binaries / FFmpeg
+bin/
 
 # Keep the audio folder placeholder
 !audio/.gitkeep
@@ -46,8 +45,16 @@ audio/temp_*
 *.sqlite3
 music_library.db
 
-# Logs
+# Logs & Scratch files
 *.log
+*.txt
+scratch_*
+photobooth-layout.psd
+mobile-view.html
+
+# OS metadata
+.DS_Store
+Thumbs.db
 logs/
 
 # OS

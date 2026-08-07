@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSSCBooth - Event Photobooth Studio</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/filters.css">
+
+    <!-- External Helpers (ag-psd & qrcode) -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-psd/dist/bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <!-- Camera Flash Overlay -->
+    <div id="flash-overlay"></div>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="brand-logo">
+            <span>📷 PSSC</span>BOOTH
+            <span class="badge-tag">Self-Hosted Studio</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-open-settings" style="padding: 10px 18px; font-weight: 800; font-size: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--primary); color: #FFFFFF;">
+                ⚙️ Settings
+            </button>
+        </div>
+    </header>
+
+    <!-- SCREEN 1: WELCOME & TEMPLATE SETUP -->
+    <section class="screen active" id="screen-welcome">
+        <div style="text-align: center; margin-top: 10px;">
+            <h1 style="font-size: 38px; font-weight: 900; margin-bottom: 8px;">PSSCBOOTH Event Studio</h1>
+            <p style="color: var(--text-muted); font-size: 18px;">Select a layout template, upload a custom PSD / PNG design, or start your event session.</p>
+        </div>
+
+        <div class="welcome-grid">
+            <!-- Left Card: Layout Templates -->
+            <div class="welcome-card">
+                <div class="card-title">1. Select Photobooth Template</div>
+                <div class="card-subtitle">Choose built-in event strips or custom slot layouts</div>
+
+                <div class="template-selector-grid" id="templates-container">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <div style="margin-top: 12px; font-size: 13px; color: var(--text-muted);" id="active-template-summary">
+                    Loading templates...
+                </div>
+
+                <!-- Custom PSD / PNG Upload Dropzone -->
+                <div style="margin-top: 20px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 8px; color: var(--primary);">🎨 Custom Template Upload (.PSD / .PNG)</label>
+                    <input type="file" id="template-file-input" accept=".psd,.png" style="display: none;">
+
+                    <!-- Click-to-browse button -->
+                    <button class="btn btn-secondary" id="upload-zone" onclick="document.getElementById('template-file-input').click()"
+                        style="width: 100%; padding: 14px 20px; border: 2px dashed rgba(16,185,129,0.45); background: rgba(16,185,129,0.06); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.2s ease; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">📂</span>
+                            <span style="font-weight: 800; font-size: 14px; color: #fff;">Browse or Drop a .PSD / .PNG Template</span>
+                        </div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Auto-detects photo slot bounds & saves to database</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Card: Session Settings & Custom PSD Upload -->
+            <div class="welcome-card">
+                <div class="card-title">2. Session Setup</div>
+
+                <!-- Customer Name / Session Label Field -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 6px; color: var(--primary);">👤 Customer Name / Event Label</label>
+                    <input type="text" id="input-customer-name" placeholder="e.g. Niko, Guest 1, Wedding" value="" style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 15px; font-weight: 700;">
+                </div>
+
+                <!-- Camera Device Select & Live Preview -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="font-weight: 800; font-size: 13px; color: var(--primary);">📷 Select Camera Input Device</label>
+                        <span id="camera-count-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: var(--primary); padding: 2px 8px; border-radius: 10px; font-weight: 700;">Scanning...</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <select id="select-camera-device" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;">
+                            <option value="">Default Camera / OBS Virtual Camera</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btn-rescan-cameras" style="padding: 10px 14px; font-size: 12px; font-weight: 700;" title="Rescan Cameras">🔄 Rescan</button>
+                    </div>
+
+                    <!-- Setup Live Video Preview (Full Uncropped Frame with object-fit: contain) -->
+                    <div style="position: relative; width: 100%; height: 250px; background: #050b09; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                        <video id="setup-camera-preview" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1);"></video>
+                        <div style="position: absolute; bottom: 8px; left: 10px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 6px; color: #10B981; border: 1px solid rgba(16,185,129,0.3);">🔴 SETUP LIVE PREVIEW</div>
+
+                        <!-- Camera Permission Request Overlay -->
+                        <div id="camera-permission-overlay" style="display: none; position: absolute; inset: 0; background: rgba(4, 18, 15, 0.94); z-index: 10; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; text-align: center;">
+                            <div style="font-size: 32px;">📷</div>
+                            <div style="font-size: 14px; font-weight: 800; color: #fff;">Camera Access Required</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Please grant camera permission in your browser</div>
+                            <button class="btn btn-primary" id="btn-request-camera-permission" style="padding: 10px 18px; font-size: 13px; margin-top: 4px;">
+                                🔑 Enable Camera Access
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prop Delay Select -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 6px; color: var(--primary);">⏱️ Prop Swap & Pose Countdown Delay</label>
+                    <select id="select-countdown-seconds" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; font-weight: 700;">
+                        <option value="10" selected>10 Seconds (Standard - Recommended)</option>
+                        <option value="5">5 Seconds (Fast Event Pace)</option>
+                        <option value="15">15 Seconds (Group Costumes & Props)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary btn-glow" id="btn-start-session" style="width: 100%; padding: 16px; font-size: 18px;">
+                    📸 START PHOTO SESSION
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCREEN 2: LIVE PHOTO STUDIO -->
+    <section class="screen" id="screen-studio">
+        <div class="studio-kiosk-layout">
+
+            <!-- Main Studio Viewport Card (Camera & Integrated HUD) -->
+            <div class="studio-viewport-card">
+
+                <!-- Integrated Viewport Header / HUD -->
+                <div class="studio-hud-header">
+                    <div class="studio-session-badge">
+                        <span class="hud-dot"></span>
+                        <span id="hud-customer-name">PSSCBOOTH SESSION</span>
+                    </div>
+
+                    <!-- Shot Progress Dots -->
+                    <div class="studio-shot-progress" id="studio-shot-progress">
+                        <div class="shot-dot" id="shot-dot-1">
+                            <span class="shot-dot-num">1</span>
+                            <div class="shot-dot-thumb" id="shot-thumb-1"></div>
+                        </div>
+                        <div class="shot-dot" id="shot-dot-2">
+                            <span class="shot-dot-num">2</span>
+                            <div class="shot-dot-thumb" id="shot-thumb-2"></div>
+                        </div>
+                        <div class="shot-dot" id="shot-dot-3">
+                            <span class="shot-dot-num">3</span>
+                            <div class="shot-dot-thumb" id="shot-thumb-3"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary hud-cancel-btn" id="btn-cancel-session">
+                        ✕ Cancel
+                    </button>
+                </div>
+
+                <!-- Camera Feed Display Box -->
+                <div class="studio-camera-frame">
+                    <video id="webcam-video" autoplay playsinline muted class="studio-video-element mirrored"></video>
+                    <canvas id="fallback-canvas" style="display:none;"></canvas>
+
+                    <!-- Center Countdown Overlay -->
+                    <div id="countdown-overlay" class="studio-countdown-overlay">
+                        <div id="prop-banner" class="studio-banner-text">GET READY FOR PHOTO 1!</div>
+                        <div id="countdown-num" class="studio-countdown-number">10</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar: Live Ticket & Controls -->
+            <div class="studio-sidebar-panel">
+
+                <!-- Live Ticket Preview Card -->
+                <div class="studio-panel-card">
+                    <div class="studio-card-title">
+                        <span class="live-dot"></span>
+                        <span>LIVE TICKET PREVIEW</span>
+                    </div>
+                    <div class="studio-ticket-preview-box">
+                        <canvas id="studio-live-preview-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Camera Filters Card -->
+                <div class="studio-panel-card">
+                    <div class="studio-card-title">
+                        <span>✨ LIVE CAMERA FILTERS</span>
+                    </div>
+                    <div class="studio-filter-grid" id="filter-grid">
+                        <button class="filter-btn active" data-filter="normal">🌿 Normal</button>
+                        <button class="filter-btn" data-filter="vintage">🟤 Sepia</button>
+                        <button class="filter-btn" data-filter="bw">⬛ B&W</button>
+                        <button class="filter-btn" data-filter="cyber">💜 Cyber</button>
+                        <button class="filter-btn" data-filter="sunset">🌅 Sunset</button>
+                        <button class="filter-btn" data-filter="softglow">✨ Glow</button>
+                        <button class="filter-btn" data-filter="noir">🎞️ Noir</button>
+                    </div>
+                </div>
+
+                <!-- Camera Mirroring Toggle Button -->
+                <button class="btn btn-secondary mirror-toggle-btn" id="btn-toggle-mirror">
+                    🪞 Toggle Camera Mirroring
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SCREEN 3: REVIEW, PRINT & EXPORT QUEUE -->
+    <section class="screen" id="screen-review">
+        <div style="text-align: center; margin-top: 10px; margin-bottom: 16px;">
+            <h1 style="font-size: 34px; font-weight: 900; margin-bottom: 4px;">🎉 Session Complete!</h1>
+            <p style="color: var(--text-muted); font-size: 16px;">Review ticket, print 4x6 dual sheets, or save PNG files for your event folder.</p>
+        </div>
+
+        <div class="review-grid">
+            <!-- Left Card: Interactive Canvas Preview & Sticker Toolbar -->
+            <div class="review-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="card-title" style="margin-bottom: 0;">Ticket Preview</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" id="toggle-view-4x6" style="padding: 6px 12px; font-size: 12px; background: var(--primary); color: #fff;">🖼️ 4x6 Dual Tickets View (2 Copies)</button>
+                        <button class="btn btn-secondary" id="toggle-view-2x6" style="padding: 6px 12px; font-size: 12px;">🖼️ 2x6 Single Ticket View</button>
+                    </div>
+                </div>
+
+                <div class="review-canvas-container">
+                    <canvas id="review-canvas"></canvas>
+                </div>
+
+            </div>
+
+            <!-- Right Card: Print, Export & Queue Actions -->
+            <div class="review-card">
+                <div class="card-title">Print, Save & Event Queue</div>
+
+                <!-- Customer Verification & Queue Record Box -->
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 14px; border-radius: 12px; margin-bottom: 16px; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">👤 Customer & Verification Code</div>
+                    <div style="font-size: 18px; font-weight: 900; color: #fff; margin-top: 2px;" id="display-customer-name">Guest</div>
+                    <div style="font-size: 26px; font-weight: 900; color: var(--primary); letter-spacing: 2px; margin-top: 2px;" id="ticket-verification-code">PSSC2026</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">📊 Logged to Event Queue • <a href="https://docs.google.com/spreadsheets/d/1NOaU4HQWSWDClCIGoxks2jkypTddojdt0rmHlw1sEKM/edit?usp=sharing" target="_blank" style="color: var(--primary); font-weight: 700;">Open Google Sheet Log</a></div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; text-align: center;" id="drive-upload-status">
+                    📊 Saved to Photobooth_Sync & Syncing to Google Sheets & Google Drive!
+                </div>
+
+                <!-- Print Options -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 8px; color: var(--primary);">🖨️ Direct Printing (Photo Paper Ready)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" id="btn-print-4x6" style="flex: 1; padding: 12px; font-size: 13px;">🖨️ Print 4x6 Dual Sheet</button>
+                        <button class="btn btn-secondary" id="btn-print-strip" style="flex: 1; padding: 12px; font-size: 13px;">🖨️ Print Single 2x6 Strip</button>
+                    </div>
+                </div>
+
+                <!-- Save / Export Options -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 8px; color: var(--primary);">💾 Save Files to Computer (Photoshop / Canva Ready)</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn btn-primary btn-glow" id="btn-download-4x6" style="width: 100%; padding: 12px; font-size: 14px;">💾 Save 4x6 Sheet PNG (Dual 2x6 Tickets)</button>
+                        <button class="btn btn-secondary" id="btn-download-png" style="width: 100%; padding: 12px; font-size: 13px;">💾 Save Single 2x6 Ticket PNG</button>
+                    </div>
+                </div>
+
+                <!-- Google Drive Folder QR Code -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 800; font-size: 13px; margin-bottom: 8px; color: var(--primary);">☁️ Scan for Google Drive Folder</label>
+                    <div style="width: 140px; height: 140px; margin: 0 auto;" id="qr-container"></div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Scan to open Event Google Drive Folder</div>
+                    <a href="https://drive.google.com/drive/folders/1J1cn8m41NIilAMczEQr3PwjWZ8ehm8Fl" target="_blank" style="font-size: 12px; color: var(--primary); font-weight: 700; display: inline-block; margin-top: 4px;">🔗 Open Drive Folder directly</a>
+                </div>
+
+                <button class="btn btn-primary btn-glow" id="btn-new-session" style="width: 100%; padding: 16px; font-size: 16px; background: linear-gradient(135deg, #10B981, #059669);">
+                    🔄 START NEW SESSION
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Settings Overlay -->
+    <div style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center;" id="modal-settings">
+        <div style="width: 480px; max-width: 90%; background: #111827; border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 24px; color: #fff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <h3 style="font-weight: 900; font-size: 20px;">⚙️ Audio & System Settings</h3>
+                <button id="btn-close-settings" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">✕</button>
+            </div>
+            
+            <div class="settings-modal-body">
+                <!-- Audio Controls -->
+                <div class="settings-group" style="margin-bottom: 16px;">
+                    <div class="settings-group-title" style="font-weight: 800; font-size: 13px; color: var(--primary); margin-bottom: 8px;">🔊 Audio & Voice Guide Toggles</div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="btn-music-toggle" style="flex: 1; min-width: 130px; padding: 12px; font-weight: 800;">🎵 Music: ON</button>
+                        <button class="btn btn-secondary" id="btn-voice-toggle" style="flex: 1; min-width: 130px; padding: 12px; font-weight: 800;">🗣️ Voice: ON</button>
+                        <button class="btn btn-secondary" id="btn-sound-toggle" style="flex: 1; min-width: 130px; padding: 12px; font-weight: 800;">🔊 SFX: ON</button>
+                    </div>
+                </div>
+
+                <!-- Desktop Auto-Sync & Google Sheet WebApp -->
+                <div class="settings-group" style="margin-bottom: 16px;">
+                    <div class="settings-group-title" style="font-weight: 800; font-size: 13px; color: var(--primary); margin-bottom: 8px;">📂 Sync Directory & Google Sheets Endpoint</div>
+                    <button class="btn btn-secondary" id="btn-connect-sync-dir" style="width: 100%; padding: 12px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
+                        📂 Connect Desktop Folder (Photobooth_Sync)
+                    </button>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Google Apps Script WebApp Endpoint URL</label>
+                        <input type="text" id="input-webapp-url" placeholder="https://script.google.com/macros/s/.../exec" value="https://script.google.com/macros/s/AKfycbxe3kECe9nOnFtU47EANig6vZICt0jTLEuOGj0Nf1tb5S1sAIfmi_gqZGAqeFhL-oTN/exec"
+                               style="width: 100%; padding: 10px; background: rgba(6, 25, 20, 0.9); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #fff; font-size: 12px; outline: none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-modal-footer" style="margin-top: 20px;">
+                <button class="btn btn-primary" id="btn-save-settings" style="width: 100%; padding: 14px; font-size: 16px; font-weight: 800;">
+                    ✓ Save & Close Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Javascript Files -->
+    <script src="js/audio-synth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/psd-parser.js"></script>
+    <script src="js/template-engine.js"></script>
+    <script src="js/camera-studio.js"></script>
+    <script src="js/stickers.js"></script>
+    <script src="js/exporter.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

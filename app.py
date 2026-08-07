@@ -207,15 +207,20 @@ def composite_session():
     width = t['width']
     height = t['height']
 
-    # Generate 6-character random uppercase alphanumeric verification code
-    import string, random, datetime
-    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    # Enforce Crucial Requirement: Google Sheets Database URL
+    sheets_url = database.get_config('google_sheets_url', '').strip()
+    if not sheets_url:
+        return jsonify({'success': False, 'error': 'Crucial Setup Missing: Google Sheets Database URL is empty in Settings. Please configure it before starting sessions.'}), 400
+
+    # Queue Number Tracking (counts sequentially 1, 2, 3...)
+    queue_number = database.get_next_queue_number()
+    code = f"#{queue_number}"
     now = datetime.datetime.now()
     date_str_formatted = now.strftime('%d/%m/%Y %H:%M:%S')
     time_stamp_filename = now.strftime('%Y-%m-%d_%H-%M-%S')
 
     safe_guest_name = "".join([c for c in guest_name_input if c.isalnum() or c in (' ', '_', '-')]).strip() or 'Guest'
-    output_filename = f"PSSCBooth_{safe_guest_name}_{code}_{time_stamp_filename}.png"
+    output_filename = f"PSSCBooth_Q{queue_number}_{safe_guest_name}_{time_stamp_filename}.png"
 
     # Load top frame overlay
     overlay_full_path = os.path.join(PREVIEW_DIR, t['overlay_path'])
@@ -311,52 +316,99 @@ def composite_session():
     os.makedirs(static_session_dir, exist_ok=True)
     final_output.save(os.path.join(static_session_dir, output_filename), 'PNG', optimize=False)
 
-    # Save session to SQLite database
+    # Save session to SQLite database with queue_number
     session_id = database.save_session(
         template_id=t['id'],
         template_name=t['name'],
         output_path=output_filename,
         guest_name=safe_guest_name,
-        code=code
+        code=code,
+        queue_number=queue_number
     )
 
-    # Asynchronous Google Apps Script Spreadsheet Row Logging (Lightweight & Fast - NO Google Drive Upload!)
-    def send_spreadsheet_log(date_fmt, name, code_val, photo_cnt, fname):
+    # Asynchronous Google Apps Script Spreadsheet Row Logging
+    def send_spreadsheet_log(date_fmt, name, q_num, photo_cnt, fname):
         import urllib.request, json, ssl
         try:
             payload = {
                 'date': date_fmt,
                 'name': name,
-                'code': code_val,
+                'queue_number': q_num,
+                'queue_display': f"Queue #{q_num}",
+                'code': f"Queue #{q_num}",
                 'photos': photo_cnt,
                 'filename': fname,
                 'paid': 'PAID'
             }
             
-            apps_script_url = 'https://script.google.com/macros/s/AKfycbzivVhvyQTPR58QDPubbUr-mmRrF8JMdMiov-RsmVQLjCaQ-ezhrGKXDyswl3IDG8eC/exec'
+            default_sheets = 'https://script.google.com/macros/s/AKfycbzivVhvyQTPR58QDPubbUr-mmRrF8JMdMiov-RsmVQLjCaQ-ezhrGKXDyswl3IDG8eC/exec'
+            target_url = database.get_config('google_sheets_url', default_sheets) or default_sheets
             data_bytes = json.dumps(payload).encode('utf-8')
             
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
             
-            req = urllib.request.Request(apps_script_url, data=data_bytes, headers={'Content-Type': 'application/json'})
+            req = urllib.request.Request(target_url, data=data_bytes, headers={'Content-Type': 'application/json'})
             with urllib.request.urlopen(req, context=ctx, timeout=10) as resp:
-                print("Google Spreadsheet Log Response:", resp.read().decode('utf-8'))
+                print("Google Spreadsheet Queue Log Response:", resp.read().decode('utf-8'))
         except Exception as err:
-            print("Google Spreadsheet Log Error notice:", err)
+            print("Google Spreadsheet Log Notice:", err)
 
     import threading
-    threading.Thread(target=send_spreadsheet_log, args=(date_str_formatted, safe_guest_name, code, len(photos_b64), output_filename)).start()
+    threading.Thread(target=send_spreadsheet_log, args=(date_str_formatted, safe_guest_name, queue_number, len(photos_b64), output_filename)).start()
 
     return jsonify({
         'success': True,
-        'message': f"Photobooth ticket generated successfully! Code: {code}",
+        'message': f"Photobooth ticket generated! Queue #{queue_number}",
         'session_id': session_id,
-        'code': code,
+        'queue_number': queue_number,
+        'queue_display': f"Queue #{queue_number}",
+        'code': f"Queue #{queue_number}",
         'guest_name': safe_guest_name,
         'output_url': f"/sessions/{output_filename}",
         'filename': output_filename
+    })
+
+# --- CONFIGURATION & CLOUD APIS ---
+
+@app.route('/api/config', methods=['GET'])
+def get_system_config():
+    default_sheets = 'https://script.google.com/macros/s/AKfycbzivVhvyQTPR58QDPubbUr-mmRrF8JMdMiov-RsmVQLjCaQ-ezhrGKXDyswl3IDG8eC/exec'
+    sheets_url = database.get_config('google_sheets_url', default_sheets)
+    drive_url = database.get_config('google_drive_url', '')
+    next_queue = database.get_next_queue_number()
+    return jsonify({
+        'success': True,
+        'google_sheets_url': sheets_url,
+        'google_drive_url': drive_url,
+        'next_queue_number': next_queue,
+        'queue_display': f"Queue #{next_queue}"
+    })
+
+@app.route('/api/config', methods=['POST'])
+def save_system_config():
+    data = request.json or {}
+    sheets_url = data.get('google_sheets_url', '').strip()
+    drive_url = data.get('google_drive_url', '').strip()
+    
+    if sheets_url:
+        database.set_config('google_sheets_url', sheets_url)
+    if drive_url is not None:
+        database.set_config('google_drive_url', drive_url)
+        
+    return jsonify({
+        'success': True,
+        'message': 'Google Sheets & Drive cloud database settings saved successfully!'
+    })
+
+@app.route('/api/queue/status', methods=['GET'])
+def get_queue_status():
+    next_num = database.get_next_queue_number()
+    return jsonify({
+        'success': True,
+        'next_queue_number': next_num,
+        'queue_display': f"Queue #{next_num}"
     })
 
 # --- GALLERY APIS ---
