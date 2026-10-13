@@ -3,134 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSSC PhotoBooth 3.0 - Live Viewfinder (External Monitor)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap" rel="stylesheet">
+    <title>PSSC PhotoBooth 3.0 · Guest Screen</title>
+    <link rel="icon" type="image/png" href="/static/img/pssc_logo.png">
     <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        :root {
-            --bg: #000000;
-            --g: #00e676;
-            --gdim: rgba(0,230,118,0.14);
-            --gglow: rgba(0,230,118,0.35);
-            --t1: #ffffff;
-            --t2: #a0a0a0;
-            --t3: #555555;
-            --b1: rgba(255,255,255,0.08);
-            --b2: rgba(255,255,255,0.16);
-            --bg1: rgba(0,230,118,0.22);
-            --r-pill: 999px;
-            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        body.viewfinder-popout {
-            background-color: var(--bg);
-            margin: 0; padding: 0;
-            width: 100vw; height: 100vh;
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            font-family: var(--font);
-            color: var(--t1);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .vf-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 28px;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--b1);
-            z-index: 100;
-        }
-
-        .vf-brand {
-            display: flex; align-items: center; gap: 12px;
-        }
-
-        .vf-brand h1 {
-            font-family: var(--font);
-            font-size: 1.15rem; font-weight: 800; margin: 0;
-            background: linear-gradient(135deg, #ffffff 0%, #00e676 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: -0.3px;
-        }
-
-        .vf-main {
-            flex: 1; display: flex;
-            justify-content: center; align-items: center;
-            padding: 16px; position: relative;
-            box-sizing: border-box; overflow: hidden;
-            width: 100vw; height: calc(100vh - 62px);
-        }
-
-        .vf-container {
-            position: relative;
-            width: auto; height: auto;
-            max-width: calc(100vw - 32px);
-            max-height: calc(100vh - 90px);
-            aspect-ratio: 340 / 238;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid var(--bg1);
-            box-shadow: 0 0 0 1px rgba(0,230,118,0.18), 0 20px 60px rgba(0,0,0,0.9), 0 0 40px var(--gdim);
-            display: flex; justify-content: center; align-items: center;
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .vf-container video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-            border-radius: 18px;
-        }
-
-        .vf-container video.unmirrored {
-            transform: scaleX(1);
-        }
-
-        /* FULLSCREEN MODE OVERRIDES */
-        body.is-fullscreen .vf-header { display: none; }
-        body.is-fullscreen .vf-main { padding: 0; height: 100vh; }
-        body.is-fullscreen .vf-container {
-            max-width: 100vw; max-height: 100vh;
-            width: 100vw; height: 100vh;
-            border-radius: 0; border: none; box-shadow: none;
-        }
-
-        .vf-controls-bar {
-            display: flex; gap: 10px; align-items: center;
-        }
-
-        @keyframes glow-pulse-anim {
-            0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 230, 118, 0.4)); }
-            50%       { filter: drop-shadow(0 0 18px rgba(0, 230, 118, 0.85)); }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/display-ui.css">
 </head>
 <body class="viewfinder-popout dark-theme">
     <!-- HEADER -->
     <header class="vf-header">
         <div class="vf-brand">
-            <img src="/static/img/pssc_logo.png" alt="PSSC Seal" style="width:40px; height:40px; object-fit:contain; filter: drop-shadow(0 0 10px rgba(0,230,118,0.55)); animation: glow-pulse-anim 2.5s ease-in-out infinite;" />
-            <h1>PSSC PhotoBooth 3.0 &bull; Viewfinder</h1>
+            <img src="/static/img/pssc_logo.png" alt="PSSC Seal" style="width:34px; height:34px; object-fit:contain;" />
+            <div>
+                <h1>PSSC PhotoBooth 3.0 &bull; Guest Screen</h1>
+                <span class="vf-session-sub" id="vfSessionSub"><span class="side-dock-dot"></span>Live Guest Screen</span>
+            </div>
         </div>
         <div class="vf-controls-bar">
-            <button id="btnToggleMirrorPopout" class="btn btn-secondary btn-sm">
-                🪞 Mirror: ON
+            <button id="btnToggleAspect" class="btn btn-secondary btn-sm" title="Toggle Aspect Mode" style="display:inline-flex;align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+                <span id="aspectModeLabel">Fit: Vertical Fill</span>
             </button>
-            <button id="btnFullscreenPopout" class="btn btn-gradient btn-sm">
-                ⛶ Enter Fullscreen (F)
+            <button id="btnToggleMirrorPopout" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+                Mirror: ON
+            </button>
+            <button id="btnFullscreenPopout" class="btn btn-gradient btn-sm" style="display:inline-flex;align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                Enter Fullscreen (F)
             </button>
         </div>
     </header>
 
-    <!-- VIEWFINDER DISPLAY CONTAINER -->
+    <!-- 3-COLUMN STUDIO WORKSPACE -->
     <main class="vf-main">
+        <!-- LEFT SIDE DOCK: LIVE SESSION HUD SELECTION LABELS -->
+        <aside class="guest-side-dock guest-side-left">
+            <div class="side-dock-label">
+                <span class="side-dock-dot"></span>
+                <span>BOOTH HUD</span>
+            </div>
+            <div class="guest-hud-stack">
+                <div class="guest-hud-card hud-card-guest" id="hudGuest">
+                    <span class="hud-card-tag">GUEST</span>
+                    <span class="hud-card-val" id="hudGuestVal">Guest</span>
+                </div>
+                <div class="guest-hud-card hud-card-template" id="hudTemplate">
+                    <span class="hud-card-tag">TEMPLATE</span>
+                    <span class="hud-card-val" id="hudTemplateVal">Classic 3-Cut Strip</span>
+                </div>
+                <div class="guest-hud-card hud-card-filter" id="hudFilter">
+                    <span class="hud-card-tag">FILTER</span>
+                    <span class="hud-card-val" id="hudFilterVal">Normal Natural</span>
+                </div>
+                <div class="guest-hud-card hud-card-layout" id="hudLayout">
+                    <span class="hud-card-tag">LAYOUT</span>
+                    <span class="hud-card-val" id="hudLayoutVal">2 Strips (Double)</span>
+                </div>
+                <div class="guest-hud-card hud-card-corners" id="hudCorners">
+                    <span class="hud-card-tag">EDGES</span>
+                    <span class="hud-card-val" id="hudCornersVal">Sharp</span>
+                </div>
+                <div class="guest-hud-card hud-card-delay" id="hudDelay">
+                    <span class="hud-card-tag">TIMER</span>
+                    <span class="hud-card-val" id="hudDelayVal">3s Delay</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER: FULL-HEIGHT CINEMATIC CAMERA VIEWFINDER -->
         <div id="popoutContainer" class="vf-container">
             <video id="popoutVideo" autoplay playsinline muted></video>
             
+            <!-- PRO FRAMING CORNER MARKS -->
+            <div class="vf-corner vf-corner-tl"></div>
+            <div class="vf-corner vf-corner-tr"></div>
+            <div class="vf-corner vf-corner-bl"></div>
+            <div class="vf-corner vf-corner-br"></div>
+
             <!-- FLASH EFFECT OVERLAY -->
             <div id="popoutFlash" class="flash-overlay"></div>
 
@@ -149,7 +98,114 @@
                 <span id="popoutStatusText">Get Ready!</span>
             </div>
         </div>
+ 
+        <!-- RIGHT SIDE DOCK: LIVE PREVIEW TICKET -->
+        <aside class="guest-side-dock guest-side-right">
+            <div class="ticket-preview-card guest-ticket-card">
+                <div class="tp-preview-header">
+                    <span class="tp-preview-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--g, #00e676);"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        Live Ticket
+                    </span>
+                    <span class="tp-preview-tag" id="popoutTicketStatusPill">
+                        <span class="side-dock-dot"></span>
+                        Real-time
+                    </span>
+                </div>
+                <div class="ticket-canvas-wrapper guest-ticket-wrapper">
+                    <canvas id="popoutTicketCanvas"></canvas>
+                </div>
+                <div class="tp-meta">
+                    <span id="popoutTemplateTitle" class="tp-meta-title">Classic Vintage 3-Strip</span>
+                    <span id="popoutTemplateSpecs" class="tp-meta-specs">600 × 1500 · 3 Slots</span>
+                </div>
+            </div>
+        </aside>
     </main>
+
+    <!-- ════ GUEST SESSION COMPLETE MODAL ════ -->
+    <div id="guestCompleteModal" class="modal-backdrop hidden">
+        <div class="guest-complete-card">
+            <div class="guest-complete-header">
+                <div class="guest-title-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--g, #00e676)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <h2>Session Complete!</h2>
+                    <span id="guestModalQueueBadge" class="guest-queue-badge">Queue #1</span>
+                </div>
+                <button class="modal-close" id="btnGuestCloseModal" title="Close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="guest-complete-body">
+                <!-- Left: Captured Photostrip Showcase -->
+                <div class="guest-strip-container">
+                    <div class="guest-strip-stage">
+                        <img id="guestModalResultImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Captured Photostrip">
+                    </div>
+                </div>
+
+                <!-- Right: Dual QR Code Deck & Download Options -->
+                <div class="guest-qr-deck">
+                    <!-- Card 1: Direct Smartphone Download -->
+                    <div class="guest-deck-card">
+                        <div class="guest-card-top">
+                            <div class="guest-card-title-group">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--g, #00e676)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                <span class="guest-card-title">Save to Phone</span>
+                            </div>
+                            <span class="guest-badge-pill">Direct PNG</span>
+                        </div>
+                        <div class="guest-qr-row">
+                            <div class="guest-qr-box">
+                                <img id="guestPhoneQrImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Phone QR" class="guest-qr-img">
+                            </div>
+                            <div class="guest-qr-desc">
+                                <p>Scan with your phone camera to download your high-resolution photostrip directly to your gallery.</p>
+                                <a id="btnGuestDirectDownload" href="#" download="" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Save Direct PNG
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Google Drive Cloud Album -->
+                    <div class="guest-deck-card">
+                        <div class="guest-card-top">
+                            <div class="guest-card-title-group">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                                <span class="guest-card-title">Google Drive Album</span>
+                            </div>
+                            <span class="guest-badge-pill guest-badge-cloud">Cloud Gallery</span>
+                        </div>
+                        <div class="guest-qr-row">
+                            <div class="guest-qr-box">
+                                <img id="guestDriveQrImg" src="/static/img/drive_qr.png" alt="Google Drive QR" class="guest-qr-img">
+                            </div>
+                            <div class="guest-qr-desc">
+                                <p>Scan or click to open the official event Google Drive folder containing all photobooth captures.</p>
+                                <a id="btnGuestDriveLink" href="https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    Open Google Drive
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Notice -->
+                    <div class="guest-notice-box">
+                        <div class="guest-notice-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        </div>
+                        <div>
+                            <span class="guest-notice-headline">Physical Print in Progress</span>
+                            <p class="guest-notice-sub">Please proceed to the booth table to collect your printed keepsake strip. Thank you for celebrating with us!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // BROADCAST CHANNEL REAL-TIME SYNC
@@ -167,42 +223,468 @@
         const popoutContainer = document.getElementById('popoutContainer');
         const btnFullscreenPopout = document.getElementById('btnFullscreenPopout');
         const btnToggleMirrorPopout = document.getElementById('btnToggleMirrorPopout');
+        const btnToggleAspect = document.getElementById('btnToggleAspect');
+        const aspectModeLabel = document.getElementById('aspectModeLabel');
+
+        // Guest HUD & Live Ticket Elements
+        const hudTemplateVal = document.getElementById('hudTemplateVal');
+        const hudFilterVal = document.getElementById('hudFilterVal');
+        const hudLayoutVal = document.getElementById('hudLayoutVal');
+        const hudCornersVal = document.getElementById('hudCornersVal');
+        const hudDelayVal = document.getElementById('hudDelayVal');
+        const hudGuestVal = document.getElementById('hudGuestVal');
+        const popoutTicketCanvas = document.getElementById('popoutTicketCanvas');
+        const popoutTemplateTitle = document.getElementById('popoutTemplateTitle');
+        const popoutTemplateSpecs = document.getElementById('popoutTemplateSpecs');
+        const popoutTicketStatusPill = document.getElementById('popoutTicketStatusPill');
+
+        // Guest Session Complete Modal Elements
+        const guestCompleteModal = document.getElementById('guestCompleteModal');
+        const guestModalQueueBadge = document.getElementById('guestModalQueueBadge');
+        const guestModalResultImg = document.getElementById('guestModalResultImg');
+        const guestPhoneQrImg = document.getElementById('guestPhoneQrImg');
+        const guestDriveQrImg = document.getElementById('guestDriveQrImg');
+        const btnGuestDirectDownload = document.getElementById('btnGuestDirectDownload');
+        const btnGuestDriveLink = document.getElementById('btnGuestDriveLink');
+        const btnGuestCloseModal = document.getElementById('btnGuestCloseModal');
 
         let isMirrored = true;
+        let isAspectSlotMode = true;
+        let currentSlotAspectRatio = null;
         let activeDeviceId = null;
         let activeStream = null;
+        let activeTemplateObj = null;
+        let hasCustomTicketRender = false;
+        let cachedGoogleDriveUrl = '';
+        let guestCapturedShots = [];
+        let guestRtcPeer = null;
 
-        // Sync webcam stream matching main tab active device
-        async function initCameraStream(deviceId = null) {
-            if (activeStream) {
-                activeStream.getTracks().forEach(t => t.stop());
+        async function loadViewfinderConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                if (data.success && data.google_drive_url) {
+                    cachedGoogleDriveUrl = data.google_drive_url;
+                }
+            } catch (e) {}
+        }
+        loadViewfinderConfig();
+
+        async function generateQrDataUrl(text) {
+            if (!text) return '';
+            try {
+                const res = await fetch(`/api/qrcode?data=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                if (data.success && data.qr_data_url) {
+                    return data.qr_data_url;
+                }
+            } catch (e) {}
+            return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
+        }
+
+        async function showGuestCompleteModal(outputUrl, queueDisplay, filename, googleDriveUrl) {
+            if (!guestCompleteModal) return;
+
+            const queueText = queueDisplay || 'Queue #1';
+            if (guestModalQueueBadge) guestModalQueueBadge.textContent = queueText;
+
+            if (guestModalResultImg && outputUrl) {
+                guestModalResultImg.src = outputUrl;
             }
 
-            try {
-                const constraints = {
-                    video: deviceId && deviceId !== 'off' ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
-                    audio: false
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                activeStream = stream;
-                popoutVideo.srcObject = stream;
-            } catch (err) {
-                console.warn("Popout stream error, retrying basic video:", err);
+            const downloadFilename = filename || (outputUrl ? outputUrl.split('/').pop() : 'photobooth_strip.png');
+            if (btnGuestDirectDownload && outputUrl) {
+                btnGuestDirectDownload.href = outputUrl;
+                btnGuestDirectDownload.setAttribute('download', downloadFilename);
+            }
+
+            // 1. Phone QR: Direct image download link
+            const fullPhoneUrl = window.location.origin + outputUrl;
+            if (guestPhoneQrImg && outputUrl) {
+                const phoneQrSrc = await generateQrDataUrl(fullPhoneUrl);
+                if (phoneQrSrc) guestPhoneQrImg.src = phoneQrSrc;
+            }
+
+            // 2. Drive QR: Google Drive Album link
+            const targetDriveUrl = googleDriveUrl || cachedGoogleDriveUrl || 'https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk';
+            if (btnGuestDriveLink) {
+                btnGuestDriveLink.href = targetDriveUrl;
+            }
+            if (guestDriveQrImg) {
+                guestDriveQrImg.src = '/static/img/drive_qr.png';
+            }
+
+            guestCompleteModal.classList.remove('hidden');
+        }
+
+        function hideGuestCompleteModal() {
+            if (guestCompleteModal) {
+                guestCompleteModal.classList.add('hidden');
+            }
+        }
+
+        if (btnGuestCloseModal) {
+            btnGuestCloseModal.addEventListener('click', () => {
+                hideGuestCompleteModal();
                 try {
-                    const fallback = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    activeStream = fallback;
-                    popoutVideo.srcObject = fallback;
-                } catch (e) {
-                    console.error("Failed popout stream:", e);
+                    syncChannel.postMessage({ type: 'SESSION_RESET' });
+                } catch (e) {}
+            });
+        }
+
+        function renderGuestTicket(template, shots = []) {
+            if (!template || !popoutTicketCanvas) return;
+            activeTemplateObj = template;
+            if (popoutTemplateTitle) popoutTemplateTitle.textContent = template.name;
+            if (popoutTemplateSpecs) popoutTemplateSpecs.textContent = `${template.width} × ${template.height} · ${template.slots ? template.slots.length : 0} Slots`;
+            if (hudTemplateVal) hudTemplateVal.textContent = template.name;
+
+            popoutTicketCanvas.width = template.width;
+            popoutTicketCanvas.height = template.height;
+            const ctx = popoutTicketCanvas.getContext('2d');
+            ctx.fillStyle = '#0f121d';
+            ctx.fillRect(0, 0, template.width, template.height);
+
+            const drawSlots = () => {
+                if (template.slots) {
+                    template.slots.forEach((slot, idx) => {
+                        if (shots[idx]) {
+                            const shotImg = new Image();
+                            shotImg.onload = () => {
+                                const sw = shotImg.width;
+                                const sh = shotImg.height;
+                                const scale = Math.max(slot.w / sw, slot.h / sh);
+                                const dw = sw * scale;
+                                const dh = sh * scale;
+                                const dx = slot.x + (slot.w - dw) / 2;
+                                const dy = slot.y + (slot.h - dh) / 2;
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.rect(slot.x, slot.y, slot.w, slot.h);
+                                ctx.clip();
+                                ctx.drawImage(shotImg, dx, dy, dw, dh);
+                                ctx.restore();
+                            };
+                            shotImg.src = shots[idx];
+                        } else {
+                            ctx.strokeStyle = '#00F0FF';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+                            ctx.fillStyle = 'rgba(0, 240, 255, 0.85)';
+                            ctx.font = 'bold 24px Space Grotesk, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(slot.label || `PIC ${idx + 1}`, slot.x + slot.w / 2, slot.y + slot.h / 2 + 8);
+                        }
+                    });
+                }
+            };
+
+            if (template.preview_url) {
+                const baseImg = new Image();
+                baseImg.crossOrigin = 'anonymous';
+                baseImg.onload = () => {
+                    ctx.drawImage(baseImg, 0, 0, template.width, template.height);
+                    drawSlots();
+                };
+                baseImg.onerror = () => {
+                    drawSlots();
+                };
+                baseImg.src = template.preview_url;
+            } else {
+                drawSlots();
+            }
+        }
+
+        async function fetchInitialTemplate() {
+            try {
+                const res = await fetch('/api/templates');
+                const data = await res.json();
+                if (data.success && data.templates && data.templates.length > 0) {
+                    let target = null;
+                    const savedId = localStorage.getItem('pssc_selected_template_id');
+                    if (savedId) {
+                        target = data.templates.find(item => String(item.id) === String(savedId));
+                    }
+                    if (!target) {
+                        try {
+                            const cfgRes = await fetch('/api/config');
+                            const cfg = await cfgRes.json();
+                            if (cfg && cfg.selected_template_id) {
+                                target = data.templates.find(item => String(item.id) === String(cfg.selected_template_id));
+                            }
+                        } catch (e) {}
+                    }
+                    const t = target || data.templates[0];
+                    if (!hasCustomTicketRender) {
+                        renderGuestTicket(t);
+                    }
+                }
+            } catch (e) {
+                console.warn("[Viewfinder] Failed to fetch initial template:", e);
+            }
+        }
+        fetchInitialTemplate();
+
+        function updateMirrorUI() {
+            if (isMirrored) {
+                popoutVideo.classList.remove('unmirrored');
+                btnToggleMirrorPopout.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Mirror: ON';
+            } else {
+                popoutVideo.classList.add('unmirrored');
+                btnToggleMirrorPopout.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Mirror: OFF';
+            }
+        }
+
+        function formatFilterName(filterName) {
+            if (!filterName) return 'Normal Natural';
+            switch (filterName) {
+                case 'k_glow': return 'K-Glow';
+                case 'haru_blue': return 'Haru Blue';
+                case 'portra': return 'Portra 400';
+                case 'fuji_provia': return 'Fuji Slide';
+                case 'bw': return 'Mono Noir';
+                case 'golden': return 'Golden Hour';
+                case 'vintage': return 'Retro 70s';
+                case 'cinematic': return 'Cinematic';
+                case 'indie': return 'Indie Matte';
+                case 'cyberpunk': return 'Cyber Neon';
+                case 'vivid': return 'Vivid Pop';
+                case 'sepia': return 'Sepia';
+                case 'normal':
+                default: return 'Normal Natural';
+            }
+        }
+
+        function applyAspectMode() {
+            if (!popoutContainer) return;
+            if (isAspectSlotMode && currentSlotAspectRatio) {
+                popoutContainer.style.alignSelf = 'center';
+                popoutContainer.style.flex = '0 0 auto';
+                popoutContainer.style.aspectRatio = currentSlotAspectRatio;
+                popoutContainer.style.width = 'auto';
+                popoutContainer.style.height = '100%';
+                popoutContainer.style.maxHeight = '100%';
+                popoutContainer.style.maxWidth = '100%';
+                if (aspectModeLabel) aspectModeLabel.textContent = 'Fit: Slot Ratio';
+                if (btnToggleAspect) btnToggleAspect.classList.add('active');
+            } else {
+                popoutContainer.style.alignSelf = 'stretch';
+                popoutContainer.style.flex = '1';
+                popoutContainer.style.aspectRatio = 'auto';
+                popoutContainer.style.width = '100%';
+                popoutContainer.style.height = '100%';
+                popoutContainer.style.maxHeight = '100%';
+                popoutContainer.style.maxWidth = '100%';
+                if (aspectModeLabel) aspectModeLabel.textContent = 'Fit: Full Fill';
+                if (btnToggleAspect) btnToggleAspect.classList.remove('active');
+            }
+        }
+
+        function updatePopoutTicketPreview(dataUrl, templateName, specs) {
+            if (!popoutTicketCanvas || !dataUrl) return;
+            hasCustomTicketRender = true;
+            if (templateName && popoutTemplateTitle) popoutTemplateTitle.textContent = templateName;
+            if (specs && popoutTemplateSpecs) popoutTemplateSpecs.textContent = specs;
+            if (templateName && hudTemplateVal) hudTemplateVal.textContent = templateName;
+
+            const img = new Image();
+            img.onload = () => {
+                popoutTicketCanvas.width = img.width;
+                popoutTicketCanvas.height = img.height;
+                const ctx = popoutTicketCanvas.getContext('2d');
+                ctx.clearRect(0, 0, img.width, img.height);
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = dataUrl;
+        }
+
+        function syncFromOpenerCanvas() {
+            try {
+                if (window.opener && window.opener.document) {
+                    const openerCanvas = window.opener.document.getElementById('liveTicketCanvas');
+                    if (openerCanvas && openerCanvas.width > 0 && openerCanvas.height > 0) {
+                        popoutTicketCanvas.width = openerCanvas.width;
+                        popoutTicketCanvas.height = openerCanvas.height;
+                        const ctx = popoutTicketCanvas.getContext('2d');
+                        ctx.clearRect(0, 0, openerCanvas.width, openerCanvas.height);
+                        ctx.drawImage(openerCanvas, 0, 0);
+                        hasCustomTicketRender = true;
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn("[Guest Screen] Opener canvas sync error:", e);
+            }
+            return false;
+        }
+
+        function resetGuestStripSlots() {
+            guestCapturedShots = [];
+            hasCustomTicketRender = false;
+            if (activeTemplateObj) {
+                renderGuestTicket(activeTemplateObj, guestCapturedShots);
+            }
+        }
+
+        function updateGuestStripSlot(idx, photoUrl) {
+            if (idx >= 0 && photoUrl) {
+                guestCapturedShots[idx] = photoUrl;
+                if (activeTemplateObj) {
+                    renderGuestTicket(activeTemplateObj, guestCapturedShots);
                 }
             }
         }
 
-        initCameraStream();
+        async function handleRtcOffer(sdpData) {
+            // If we already have a direct pristine memory stream from window.opener, skip WebRTC negotiation completely to save CPU!
+            if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active) {
+                console.log("[Guest Screen] Opener MediaStream active, skipping redundant WebRTC negotiation to save CPU");
+                return;
+            }
+
+            try {
+                if (guestRtcPeer) {
+                    try { guestRtcPeer.close(); } catch (e) {}
+                    guestRtcPeer = null;
+                }
+
+                guestRtcPeer = new RTCPeerConnection({ iceServers: [] });
+
+                guestRtcPeer.ontrack = (event) => {
+                    if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active && popoutVideo.srcObject === window.opener.currentVideoStream) {
+                        return;
+                    }
+                    console.log("[Guest Screen] WebRTC stream track received from host photobooth");
+                    if (event.streams && event.streams[0]) {
+                        activeStream = event.streams[0];
+                        popoutVideo.srcObject = activeStream;
+                        popoutVideo.muted = true;
+                        popoutVideo.playsInline = true;
+                        popoutVideo.play().catch(e => console.warn("[Guest Screen] Video play error:", e));
+                    }
+                };
+
+                guestRtcPeer.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        const cand = event.candidate.toJSON ? event.candidate.toJSON() : {
+                            candidate: event.candidate.candidate,
+                            sdpMid: event.candidate.sdpMid,
+                            sdpMLineIndex: event.candidate.sdpMLineIndex
+                        };
+                        syncChannel.postMessage({ type: 'RTC_ICE', candidate: cand, from: 'guest' });
+                    }
+                };
+
+                await guestRtcPeer.setRemoteDescription(new RTCSessionDescription(sdpData));
+                const answer = await guestRtcPeer.createAnswer();
+                await guestRtcPeer.setLocalDescription(answer);
+
+                syncChannel.postMessage({
+                    type: 'RTC_ANSWER',
+                    sdp: { type: answer.type, sdp: answer.sdp }
+                });
+                console.log("[Guest Screen] Sent WebRTC answer to host photobooth");
+            } catch (err) {
+                console.error("[Guest Screen] WebRTC negotiation error:", err);
+            }
+        }
+
+        let lastStreamRequestTime = 0;
+        function requestStreamWithThrottle() {
+            const now = Date.now();
+            if (now - lastStreamRequestTime < 2500) return;
+            lastStreamRequestTime = now;
+            try {
+                syncChannel.postMessage({ type: 'REQUEST_STREAM' });
+            } catch (e) {}
+        }
+
+        // Sync webcam stream matching main tab active device
+        async function initCameraStream(deviceId = null) {
+            // 1. Direct memory stream from window.opener if opened via popout
+            if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active) {
+                console.log("[Guest Screen] Sharing active MediaStream from main photobooth window");
+                activeStream = window.opener.currentVideoStream;
+                popoutVideo.srcObject = activeStream;
+                popoutVideo.muted = true;
+                popoutVideo.playsInline = true;
+                try {
+                    await popoutVideo.play();
+                } catch (e) {
+                    console.warn("[Guest Screen] Shared stream play error:", e);
+                }
+                return;
+            }
+
+            // 2. Request WebRTC stream from host tab via BroadcastChannel
+            console.log("[Guest Screen] Requesting WebRTC stream from host photobooth tab");
+            requestStreamWithThrottle();
+
+            // 3. Fallback: If no WebRTC stream connects after 1200ms and activeStream is not active, attempt local getUserMedia
+            setTimeout(async () => {
+                if (activeStream && activeStream.active && popoutVideo.srcObject) {
+                    return; // Streaming smoothly!
+                }
+                console.log("[Guest Screen] WebRTC host not detected or timed out, trying local getUserMedia fallback");
+                try {
+                    const constraints = {
+                        video: deviceId && deviceId !== 'off' 
+                            ? { deviceId: { ideal: deviceId }, width: { ideal: 1920, min: 1280 }, height: { ideal: 1080, min: 720 }, frameRate: { ideal: 30, max: 30 } }
+                            : { width: { ideal: 1920, min: 1280 }, height: { ideal: 1080, min: 720 }, frameRate: { ideal: 30, max: 30 } },
+                        audio: false
+                    };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    activeStream = stream;
+                    popoutVideo.srcObject = stream;
+                    popoutVideo.muted = true;
+                    popoutVideo.playsInline = true;
+                    await popoutVideo.play().catch(() => {});
+                } catch (err) {
+                    console.warn("[Guest Screen] Local fallback error:", err);
+                    try {
+                        const fallback = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } }, audio: false });
+                        activeStream = fallback;
+                        popoutVideo.srcObject = fallback;
+                        popoutVideo.muted = true;
+                        popoutVideo.playsInline = true;
+                        await popoutVideo.play().catch(() => {});
+                    } catch (e) {
+                        console.error("[Guest Screen] Failed popout stream fallback:", e);
+                    }
+                }
+            }, 1200);
+        }
+
+        // Connection handshake with main window
+        if (window.opener) {
+            let connectAttempts = 0;
+            const tryConnectOpener = () => {
+                syncFromOpenerCanvas();
+                if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active) {
+                    initCameraStream();
+                } else if (connectAttempts < 10) {
+                    connectAttempts++;
+                    setTimeout(tryConnectOpener, 200);
+                } else {
+                    initCameraStream();
+                }
+            };
+            tryConnectOpener();
+        } else {
+            initCameraStream();
+        }
 
         try {
             syncChannel.postMessage({ type: 'POPOUT_READY' });
+            syncChannel.postMessage({ type: 'REQUEST_STATE_SYNC' });
         } catch (e) {}
+
+        // Periodic heartbeat so host window reliably detects that guest screen is active
+        setInterval(() => {
+            try {
+                syncChannel.postMessage({ type: 'GUEST_HEARTBEAT' });
+            } catch (e) {}
+        }, 1200);
 
         // Listen for real-time messages from main tab
         syncChannel.onmessage = (event) => {
@@ -210,24 +692,168 @@
             if (!data) return;
 
             switch (data.type) {
-                case 'DEVICE_CHANGE':
-                    activeDeviceId = data.deviceId;
-                    initCameraStream(activeDeviceId);
+                case 'CLOSE_GUEST_SCREEN':
+                    try { window.close(); } catch (e) {}
                     break;
 
-                case 'MIRROR_CHANGE':
-                    isMirrored = data.isMirrored;
-                    if (isMirrored) {
-                        popoutVideo.classList.remove('unmirrored');
-                        btnToggleMirrorPopout.textContent = '🪞 Mirror: ON';
+                case 'TICKET_RENDER':
+                    if (data.dataUrl) {
+                        updatePopoutTicketPreview(data.dataUrl, data.templateName, data.specs);
+                    }
+                    break;
+
+                case 'STATE_SYNC':
+                    if (data.deviceId && data.deviceId !== activeDeviceId) {
+                        activeDeviceId = data.deviceId;
+                        if (!window.opener || !window.opener.currentVideoStream) {
+                            initCameraStream(activeDeviceId);
+                        }
+                    }
+                    if (typeof data.isMirrored === 'boolean') {
+                        isMirrored = data.isMirrored;
+                        updateMirrorUI();
+                    }
+                    if (data.filter) {
+                        applyFilter(data.filter);
+                        if (hudFilterVal) hudFilterVal.textContent = formatFilterName(data.filter);
+                    }
+                    if (data.templateName && hudTemplateVal) {
+                        hudTemplateVal.textContent = data.templateName;
+                    }
+                    if (data.templateName && popoutTemplateTitle) {
+                        popoutTemplateTitle.textContent = data.templateName;
+                    }
+                    if (data.layout && hudLayoutVal) {
+                        hudLayoutVal.textContent = data.layout;
+                    }
+                    if (data.corners && hudCornersVal) {
+                        hudCornersVal.textContent = data.corners === 'curved' ? 'Curved' : 'Sharp';
+                    }
+                    if (data.delay && hudDelayVal) {
+                        hudDelayVal.textContent = data.delay;
+                    }
+                    if (data.guest && hudGuestVal) {
+                        hudGuestVal.textContent = data.guest;
+                    }
+                    if (data.template) {
+                        activeTemplateObj = data.template;
+                        if (!data.ticketDataUrl) {
+                            renderGuestTicket(data.template);
+                        }
+                    }
+                    if (data.ticketDataUrl) {
+                        updatePopoutTicketPreview(data.ticketDataUrl, data.templateName, data.specs);
+                    }
+                    if (data.aspectRatio) {
+                        currentSlotAspectRatio = data.aspectRatio;
+                        applyAspectMode();
+                    }
+                    break;
+
+                case 'TEMPLATE_CHANGE':
+                    if (data.name && hudTemplateVal) {
+                        hudTemplateVal.textContent = data.name;
+                    }
+                    if (data.name && popoutTemplateTitle) {
+                        popoutTemplateTitle.textContent = data.name;
+                    }
+                    if (data.specs && popoutTemplateSpecs) {
+                        popoutTemplateSpecs.textContent = data.specs;
+                    }
+                    if (data.aspectRatio) {
+                        currentSlotAspectRatio = data.aspectRatio;
+                        applyAspectMode();
+                    }
+                    if (popoutTicketStatusPill) {
+                        popoutTicketStatusPill.innerHTML = `<span class="side-dock-dot"></span> Real-time`;
+                    }
+                    if (data.template) {
+                        activeTemplateObj = data.template;
+                        renderGuestTicket(data.template);
+                    } else if (data.dataUrl) {
+                        updatePopoutTicketPreview(data.dataUrl, data.name, data.specs);
                     } else {
-                        popoutVideo.classList.add('unmirrored');
-                        btnToggleMirrorPopout.textContent = '🪞 Mirror: OFF';
+                        if (!syncFromOpenerCanvas()) {
+                            fetchInitialTemplate();
+                        }
                     }
                     break;
 
                 case 'FILTER_CHANGE':
                     applyFilter(data.filter);
+                    if (hudFilterVal) {
+                        hudFilterVal.textContent = formatFilterName(data.filter);
+                    }
+                    break;
+
+                case 'LAYOUT_CHANGE':
+                    if (data.layout && hudLayoutVal) {
+                        hudLayoutVal.textContent = data.layout;
+                    }
+                    break;
+
+                case 'CORNERS_CHANGE':
+                    if (data.corners && hudCornersVal) {
+                        hudCornersVal.textContent = data.corners === 'curved' ? 'Curved' : 'Sharp';
+                    }
+                    break;
+
+                case 'DELAY_CHANGE':
+                    if (data.delay && hudDelayVal) {
+                        hudDelayVal.textContent = data.delay;
+                    }
+                    break;
+
+                case 'GUEST_CHANGE':
+                    if (data.guest && hudGuestVal) {
+                        hudGuestVal.textContent = data.guest;
+                    }
+                    break;
+
+                case 'RTC_OFFER':
+                    if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active && popoutVideo.srcObject === window.opener.currentVideoStream) {
+                        console.log("[Guest Screen] Skipping RTC offer, using direct lossless opener stream");
+                        break;
+                    }
+                    if (data.sdp) {
+                        handleRtcOffer(data.sdp);
+                    }
+                    break;
+
+                case 'RTC_ICE':
+                    if (data.from !== 'guest' && guestRtcPeer && data.candidate) {
+                        try {
+                            guestRtcPeer.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(() => {});
+                        } catch (e) {}
+                    }
+                    break;
+
+                case 'STREAM_UPDATED':
+                    if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active) {
+                        activeStream = window.opener.currentVideoStream;
+                        popoutVideo.srcObject = activeStream;
+                        popoutVideo.muted = true;
+                        popoutVideo.playsInline = true;
+                        popoutVideo.play().catch(() => {});
+                    } else if (!activeStream || !activeStream.active) {
+                        requestStreamWithThrottle();
+                    }
+                    break;
+
+                case 'DEVICE_CHANGE':
+                    if (data.deviceId) currentDeviceId = data.deviceId;
+                    if (window.opener && window.opener.currentVideoStream && window.opener.currentVideoStream.active) {
+                        activeStream = window.opener.currentVideoStream;
+                        popoutVideo.srcObject = activeStream;
+                        popoutVideo.muted = true;
+                        popoutVideo.playsInline = true;
+                        popoutVideo.play().catch(() => {});
+                    }
+                    break;
+
+                case 'MIRROR_CHANGE':
+                    isMirrored = data.isMirrored;
+                    updateMirrorUI();
                     break;
 
                 case 'STATUS_NOTICE':
@@ -251,13 +877,52 @@
 
                 case 'TRIGGER_FLASH':
                     popoutFlash.classList.add('active');
-                    setTimeout(() => popoutFlash.classList.remove('active'), 200);
+                    setTimeout(() => popoutFlash.classList.remove('active'), 80);
+                    break;
+
+                case 'SESSION_START':
+                    hideGuestCompleteModal();
+                    resetGuestStripSlots();
+                    popoutProgressBadge.classList.remove('hidden');
+                    popoutShotNum.textContent = '1';
+                    if (data.total) {
+                        popoutTotalShotNum.textContent = data.total;
+                    }
+                    if (popoutTicketStatusPill) {
+                        popoutTicketStatusPill.innerHTML = `<span class="side-dock-dot" style="background:#ffb300;box-shadow:0 0 8px #ffb300;"></span> Capturing...`;
+                    }
                     break;
 
                 case 'SHOT_UPDATE':
                     popoutShotNum.textContent = data.current;
                     popoutTotalShotNum.textContent = data.total;
                     popoutProgressBadge.classList.remove('hidden');
+                    if (data.photoUrl) {
+                        updateGuestStripSlot(data.current - 1, data.photoUrl);
+                    }
+                    break;
+
+                case 'SESSION_COMPLETE':
+                    showGuestCompleteModal(data.outputUrl, data.queueDisplay, data.filename, data.googleDriveUrl);
+                    break;
+
+                case 'QUEUE_UPDATED':
+                    if (guestModalQueueBadge) {
+                        guestModalQueueBadge.textContent = data.queue_display || `Queue #${data.next_queue_number || 1}`;
+                    }
+                    break;
+
+                case 'SESSION_RESET':
+                    hideGuestCompleteModal();
+                    resetGuestStripSlots();
+                    if (popoutTicketStatusPill) {
+                        popoutTicketStatusPill.innerHTML = `<span class="side-dock-dot"></span> Real-time`;
+                    }
+                    if (activeTemplateObj) {
+                        renderGuestTicket(activeTemplateObj);
+                    } else {
+                        fetchInitialTemplate();
+                    }
                     break;
 
                 case 'SESSION_END':
@@ -265,11 +930,15 @@
                     popoutCountdown.classList.add('hidden');
                     popoutStatusBanner.classList.add('hidden');
                     popoutFlash.classList.remove('active');
+                    if (popoutTicketStatusPill) {
+                        popoutTicketStatusPill.innerHTML = `<span class="side-dock-dot"></span> Real-time`;
+                    }
                     break;
 
                 case 'ASPECT_RATIO_CHANGE':
                     if (data.aspectRatio) {
-                        popoutContainer.style.aspectRatio = data.aspectRatio;
+                        currentSlotAspectRatio = data.aspectRatio;
+                        applyAspectMode();
                     }
                     break;
             }
@@ -277,32 +946,47 @@
 
         function applyFilter(filterName) {
             switch (filterName) {
-                case 'bw': popoutVideo.style.filter = 'grayscale(100%)'; break;
-                case 'sepia': popoutVideo.style.filter = 'sepia(80%)'; break;
-                case 'vintage': popoutVideo.style.filter = 'contrast(120%) saturate(70%) sepia(30%)'; break;
-                case 'cyberpunk': popoutVideo.style.filter = 'hue-rotate(180deg) saturate(140%)'; break;
-                case 'vivid': popoutVideo.style.filter = 'saturate(160%) contrast(110%)'; break;
+                case 'k_glow': popoutVideo.style.filter = 'brightness(108%) contrast(104%) saturate(106%)'; break;
+                case 'haru_blue': popoutVideo.style.filter = 'contrast(106%) brightness(105%) saturate(95%) sepia(12%) hue-rotate(160deg)'; break;
+                case 'portra': popoutVideo.style.filter = 'sepia(18%) saturate(115%) contrast(108%) brightness(102%) hue-rotate(-6deg)'; break;
+                case 'fuji_provia': popoutVideo.style.filter = 'contrast(115%) saturate(125%) brightness(102%) hue-rotate(5deg)'; break;
+                case 'bw': popoutVideo.style.filter = 'grayscale(100%) contrast(125%) brightness(102%)'; break;
+                case 'golden': popoutVideo.style.filter = 'sepia(35%) saturate(135%) brightness(104%) contrast(108%) hue-rotate(-12deg)'; break;
+                case 'vintage': popoutVideo.style.filter = 'contrast(112%) saturate(85%) sepia(35%) brightness(102%)'; break;
+                case 'cinematic': popoutVideo.style.filter = 'contrast(120%) saturate(110%) sepia(15%) hue-rotate(150deg) brightness(98%)'; break;
+                case 'indie': popoutVideo.style.filter = 'contrast(90%) brightness(110%) saturate(88%) sepia(12%)'; break;
+                case 'cyberpunk': popoutVideo.style.filter = 'hue-rotate(180deg) saturate(145%) contrast(115%)'; break;
+                case 'vivid': popoutVideo.style.filter = 'saturate(165%) contrast(115%) brightness(103%)'; break;
+                case 'sepia': popoutVideo.style.filter = 'sepia(90%) contrast(110%) brightness(95%)'; break;
+                case 'normal':
                 default: popoutVideo.style.filter = 'none'; break;
             }
         }
 
+        // Aspect Mode Toggle
+        if (btnToggleAspect) {
+            btnToggleAspect.addEventListener('click', () => {
+                isAspectSlotMode = !isAspectSlotMode;
+                applyAspectMode();
+            });
+        }
+
         // Mirror Toggle
-        btnToggleMirrorPopout.addEventListener('click', () => {
-            isMirrored = !isMirrored;
-            if (isMirrored) {
-                popoutVideo.classList.remove('unmirrored');
-                btnToggleMirrorPopout.textContent = '🪞 Mirror: ON';
-            } else {
-                popoutVideo.classList.add('unmirrored');
-                btnToggleMirrorPopout.textContent = '🪞 Mirror: OFF';
-            }
-        });
+        if (btnToggleMirrorPopout) {
+            btnToggleMirrorPopout.addEventListener('click', () => {
+                isMirrored = !isMirrored;
+                updateMirrorUI();
+                try {
+                    syncChannel.postMessage({ type: 'MIRROR_CHANGE', isMirrored });
+                } catch (e) {}
+            });
+        }
 
         // Fullscreen Toggle
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                popoutContainer.requestFullscreen().catch(err => {
-                    document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(() => {
+                    popoutContainer.requestFullscreen();
                 });
             } else {
                 document.exitFullscreen();
@@ -314,10 +998,10 @@
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
                 document.body.classList.add('is-fullscreen');
-                btnFullscreenPopout.textContent = '⛶ Exit Fullscreen (Esc)';
+                btnFullscreenPopout.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg> Exit Fullscreen (Esc)';
             } else {
                 document.body.classList.remove('is-fullscreen');
-                btnFullscreenPopout.textContent = '⛶ Enter Fullscreen (F)';
+                btnFullscreenPopout.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Enter Fullscreen (F)';
             }
         });
 
@@ -329,11 +1013,19 @@
         });
 
         // Notify main window when popout window is closed so main window restores local viewfinder
-        window.addEventListener('beforeunload', () => {
+        const notifyPopoutClosed = () => {
+            // Only stop stream if it was opened independently, NEVER kill opener's stream!
+            if (activeStream && (!window.opener || activeStream !== window.opener.currentVideoStream)) {
+                try {
+                    activeStream.getTracks().forEach(t => t.stop());
+                } catch (e) {}
+            }
             try {
                 syncChannel.postMessage({ type: 'POPOUT_CLOSED' });
             } catch(e) {}
-        });
+        };
+        window.addEventListener('beforeunload', notifyPopoutClosed);
+        window.addEventListener('pagehide', notifyPopoutClosed);
     </script>
 </body>
 </html>

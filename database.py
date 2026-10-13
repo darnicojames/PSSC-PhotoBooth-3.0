@@ -55,6 +55,18 @@ def init_db():
             cursor.execute('ALTER TABLE sessions ADD COLUMN queue_number INTEGER')
         except Exception: pass
         try:
+            cursor.execute("ALTER TABLE sessions ADD COLUMN paid_status TEXT DEFAULT 'Paid'")
+        except Exception: pass
+        try:
+            cursor.execute("ALTER TABLE sessions ADD COLUMN given_status TEXT DEFAULT 'Not Given'")
+        except Exception: pass
+        try:
+            cursor.execute("ALTER TABLE sessions ADD COLUMN drive_url TEXT DEFAULT ''")
+        except Exception: pass
+        try:
+            cursor.execute("ALTER TABLE sessions ADD COLUMN video_path TEXT DEFAULT ''")
+        except Exception: pass
+        try:
             cursor.execute("ALTER TABLE music_library ADD COLUMN source TEXT DEFAULT 'spotify'")
         except Exception: pass
         try:
@@ -79,12 +91,35 @@ def set_config(key, value):
         conn.commit()
 
 def get_next_queue_number():
+    counter = get_config('queue_counter', None)
+    if counter is not None:
+        try:
+            val = int(counter)
+            if val > 0:
+                return val
+        except (ValueError, TypeError):
+            pass
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT MAX(id) as max_id FROM sessions')
+        cursor.execute('SELECT MAX(queue_number) as max_q, MAX(id) as max_id FROM sessions')
         row = cursor.fetchone()
-        max_id = row['max_id'] if row and row['max_id'] else 0
-        return max_id + 1
+        max_val = 0
+        if row:
+            if row['max_q'] is not None:
+                max_val = row['max_q']
+            elif row['max_id'] is not None:
+                max_val = row['max_id']
+        return max_val + 1
+
+def reset_queue(start_number=1):
+    try:
+        val = int(start_number)
+        if val < 1:
+            val = 1
+    except (ValueError, TypeError):
+        val = 1
+    set_config('queue_counter', val)
+    return val
 
 def clean_corrupted_tracks(music_library_dir):
     try:
@@ -150,18 +185,84 @@ def delete_template(template_id):
         return t
     return None
 
-def save_session(template_id, template_name, output_path, guest_name="Guest", code="", queue_number=None):
+def save_session(template_id, template_name, output_path, guest_name="Guest", code="", queue_number=None, paid_status="Paid", given_status="Not Given", drive_url=""):
     created_at = time.time()
     if queue_number is None:
         queue_number = get_next_queue_number()
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO sessions (template_id, template_name, output_path, guest_name, code, queue_number, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (template_id, template_name, output_path, guest_name, code, queue_number, created_at))
+            INSERT INTO sessions (template_id, template_name, output_path, guest_name, code, queue_number, paid_status, given_status, drive_url, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (template_id, template_name, output_path, guest_name, code, queue_number, paid_status, given_status, drive_url, created_at))
+        session_id = cursor.lastrowid
         conn.commit()
-        return cursor.lastrowid
+    try:
+        set_config('queue_counter', int(queue_number) + 1)
+    except Exception as e:
+        print("Notice updating queue_counter:", e)
+    return session_id
+
+def get_session(session_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM sessions WHERE id = ?', (session_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+def update_session_status(session_id, paid_status=None, given_status=None, drive_url=None):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM sessions WHERE id = ?', (session_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        current_paid = row['paid_status'] if 'paid_status' in row.keys() and row['paid_status'] else 'Paid'
+        current_given = row['given_status'] if 'given_status' in row.keys() and row['given_status'] else 'Not Given'
+        current_drive = row['drive_url'] if 'drive_url' in row.keys() and row['drive_url'] else ''
+        
+        new_paid = paid_status if paid_status is not None else current_paid
+        new_given = given_status if given_status is not None else current_given
+        new_drive = drive_url if drive_url is not None else current_drive
+        
+        cursor.execute('''
+            UPDATE sessions SET paid_status = ?, given_status = ?, drive_url = ?
+            WHERE id = ?
+        ''', (new_paid, new_given, new_drive, session_id))
+        conn.commit()
+        cursor.execute('SELECT * FROM sessions WHERE id = ?', (session_id,))
+        updated = cursor.fetchone()
+        return dict(updated) if updated else None
+
+def update_session_status_by_queue(queue_number, paid_status=None, given_status=None, drive_url=None):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM sessions WHERE queue_number = ?', (queue_number,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        current_paid = row['paid_status'] if 'paid_status' in row.keys() and row['paid_status'] else 'Paid'
+        current_given = row['given_status'] if 'given_status' in row.keys() and row['given_status'] else 'Not Given'
+        current_drive = row['drive_url'] if 'drive_url' in row.keys() and row['drive_url'] else ''
+        
+        new_paid = paid_status if paid_status is not None else current_paid
+        new_given = given_status if given_status is not None else current_given
+        new_drive = drive_url if drive_url is not None else current_drive
+        
+        cursor.execute('''
+            UPDATE sessions SET paid_status = ?, given_status = ?, drive_url = ?
+            WHERE queue_number = ?
+        ''', (new_paid, new_given, new_drive, queue_number))
+        conn.commit()
+        cursor.execute('SELECT * FROM sessions WHERE queue_number = ?', (queue_number,))
+        updated = cursor.fetchone()
+        return dict(updated) if updated else None
+
+def update_session_video_by_queue(queue_number, video_path):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('UPDATE sessions SET video_path = ? WHERE queue_number = ?', (video_path, queue_number))
+        conn.commit()
 
 def get_all_sessions():
     with get_db() as conn:

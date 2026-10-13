@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSSC PhotoBooth 3.0</title>
-    <meta name="description" content="PSSC PhotoBooth 3.0 — Professional event photography system.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet">
+    <title>WTM Edtion · PSSC PhotoBooth 3.0</title>
+    <meta name="description" content="PSSC PhotoBooth 3.0: Professional event photography system.">
+    <link rel="icon" type="image/png" href="/static/img/pssc_logo.png">
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/apple-ui.css">
+    <script src="/js/appearance.js"></script>
 </head>
 <body class="dark-theme">
-
-<!-- MESH GRADIENT ORBS (background FX) -->
-<div class="bg-orb orb-purple"></div>
-<div class="bg-orb orb-cyan"></div>
-<div class="bg-orb orb-pink"></div>
 
 <div class="app-shell">
 
@@ -26,12 +21,12 @@
             <img src="/static/img/pssc_logo.png" alt="PSSC Logo" class="brand-logo">
             <div class="brand-text">
                 <span class="brand-name">PSSC</span>
-                <span class="brand-sub">PhotoBooth 3.0</span>
+                <span class="brand-sub">WTM Edtion</span>
             </div>
         </div>
 
         <!-- Nav -->
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" aria-label="Workspace">
             <button class="nav-btn active" data-tab="tab-booth" id="navBooth">
                 <span class="nav-icon-wrap nav-icon-booth">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -75,13 +70,18 @@
         <!-- TOPBAR -->
         <header class="topbar">
             <div class="topbar-left">
-                <h1 class="topbar-title" id="topbarTitle">Photobooth</h1>
+                <div class="topbar-heading-row">
+                    <h1 class="topbar-title" id="topbarTitle">Photobooth</h1>
+                </div>
             </div>
             <div class="topbar-right">
-                <div class="topbar-chip">
-                    <span class="dot pulse"></span>
+                <button class="icon-btn appearance-toggle" id="btnAppearance" type="button" aria-label="Switch to dark appearance" title="Switch appearance" aria-pressed="false">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg>
+                </button>
+                <button type="button" class="topbar-chip" id="topbarQueueChip" title="View & reset queue counter">
                     <span id="topbarQueueText">Queue #1</span>
-                </div>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;margin-left:4px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                </button>
             </div>
         </header>
 
@@ -96,11 +96,11 @@
                     <div class="glass-card viewfinder-section">
                         <div class="vf-header">
                             <div class="vf-title-row">
-                                <span class="section-eyebrow">Live Viewfinder</span>
+                                <span class="section-eyebrow">Viewfinder</span>
                                 <div class="vf-header-actions">
-                                    <button id="btnPopoutViewfinder" class="icon-btn" title="Pop-out to 2nd screen">
+                                    <button id="btnPopoutViewfinder" class="icon-btn" title="Open Guest Screen (/guest)">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                                        Pop-out
+                                        Guest Screen
                                     </button>
                                     <button id="btnFullscreenViewfinder" class="icon-btn" title="Fullscreen">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -114,6 +114,19 @@
                         <div class="viewfinder-wrapper" id="viewfinderWrapper">
                             <video id="webcamVideo" autoplay playsinline muted></video>
                             <canvas id="liveOverlayCanvas"></canvas>
+                            <div id="cameraEmptyState" class="camera-empty-state" role="status">
+                                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M20 7h-4l-2-3h-4L8 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><circle cx="12" cy="13" r="4"/></svg>
+                                <h2 id="cameraEmptyTitle">Connecting to your camera</h2>
+                                <p id="cameraEmptyDescription">Allow camera access when prompted. You can choose a device in settings.</p>
+                                <button type="button" class="camera-settings-link" id="btnCameraSettings">Camera settings</button>
+                            </div>
+
+                            <!-- Pro camera framing corner marks -->
+                            <div class="vf-corner vf-corner-tl"></div>
+                            <div class="vf-corner vf-corner-tr"></div>
+                            <div class="vf-corner vf-corner-bl"></div>
+                            <div class="vf-corner vf-corner-br"></div>
+
                             <div id="flashOverlay" class="flash-overlay"></div>
                             <div id="countdownOverlay" class="countdown-overlay hidden">
                                 <span id="countdownNumber">3</span>
@@ -124,24 +137,27 @@
                             <div id="sessionStatusBanner" class="session-status-banner hidden">
                                 <span id="sessionStatusText">Get Ready!</span>
                             </div>
-                            <div id="viewfinderPoppedOutPlaceholder" class="popped-out-placeholder hidden">
-                                <div class="popout-icon">📺</div>
-                                <h3>Viewfinder on External Screen</h3>
-                                <p>The live video is active on your external monitor.</p>
-                                <button id="btnReturnViewfinder" class="btn btn-primary btn-sm">Return Here</button>
-                            </div>
-                        </div>
 
-                        <!-- FILTER BAR -->
-                        <div class="filter-bar">
-                            <span class="filter-bar-label">Filter</span>
-                            <div class="filter-pills">
-                                <button class="filter-btn active" data-filter="normal">Normal</button>
-                                <button class="filter-btn" data-filter="vintage">Vintage</button>
-                                <button class="filter-btn" data-filter="bw">B&amp;W</button>
-                                <button class="filter-btn" data-filter="sepia">Sepia</button>
-                                <button class="filter-btn" data-filter="cyberpunk">Cyber</button>
-                                <button class="filter-btn" data-filter="vivid">Vivid</button>
+                            <div id="viewfinderPoppedOutPlaceholder" class="popped-out-placeholder hidden" role="status">
+                                <div class="popout-badge">
+                                    <span class="popout-dot"></span>
+                                    <span>Guest Screen Active</span>
+                                </div>
+                                <div class="popout-icon-box">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                        <line x1="8" y1="21" x2="16" y2="21"/>
+                                        <line x1="12" y1="17" x2="12" y2="21"/>
+                                    </svg>
+                                </div>
+                                <div class="popout-text-group">
+                                    <h3 class="popout-headline">Camera Preview on Guest Screen</h3>
+                                    <p class="popout-sub">Live camera feed is streaming on the guest display. Main preview is disabled to optimize performance.</p>
+                                </div>
+                                <button id="btnReturnViewfinder" type="button" class="btn btn-secondary btn-sm popout-return-btn">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    Bring Camera Preview Back
+                                </button>
                             </div>
                         </div>
 
@@ -149,18 +165,43 @@
                         <div class="booth-controls">
                             <div class="booth-opts">
                                 <div class="opt-group">
-                                    <label class="opt-label">Guest</label>
+                                    <label class="opt-label" for="guestNameInput">Guest</label>
                                     <input type="text" id="guestNameInput" class="opt-input" value="Guest" placeholder="Name">
                                 </div>
                                 <div class="opt-group">
-                                    <label class="opt-label">Layout</label>
+                                    <label class="opt-label" for="filterSelect">Filter</label>
+                                    <select id="filterSelect" class="opt-select">
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="k_glow">K-Glow</option>
+                                        <option value="haru_blue">Haru Blue</option>
+                                        <option value="portra">Portra 400</option>
+                                        <option value="fuji_provia">Fuji Slide</option>
+                                        <option value="bw">Mono Noir</option>
+                                        <option value="golden">Golden Hour</option>
+                                        <option value="vintage">Retro 70s</option>
+                                        <option value="cinematic">Cinematic</option>
+                                        <option value="indie">Indie Matte</option>
+                                        <option value="cyberpunk">Cyber Neon</option>
+                                        <option value="vivid">Vivid Pop</option>
+                                        <option value="sepia">Sepia</option>
+                                    </select>
+                                </div>
+                                <div class="opt-group">
+                                    <label class="opt-label" for="layoutSelect">Layout</label>
                                     <select id="layoutSelect" class="opt-select">
                                         <option value="double">2 Strips</option>
                                         <option value="single">1 Strip</option>
                                     </select>
                                 </div>
                                 <div class="opt-group">
-                                    <label class="opt-label">Delay</label>
+                                    <label class="opt-label" for="cornersSelect">Corners</label>
+                                    <select id="cornersSelect" class="opt-select" title="Photo corner style: Sharp (straight edges) or Curved (rounded corners)">
+                                        <option value="sharp" selected>Sharp</option>
+                                        <option value="curved">Curved</option>
+                                    </select>
+                                </div>
+                                <div class="opt-group">
+                                    <label class="opt-label" for="countdownSelect">Delay</label>
                                     <select id="countdownSelect" class="opt-select">
                                         <option value="3" selected>3 sec</option>
                                         <option value="5">5 sec</option>
@@ -169,9 +210,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <button id="btnStartBooth" class="btn btn-start">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                Start Session
+                            <button id="btnStartBooth" class="btn btn-start btn-shutter-pose" title="Start Session">
+                                <span class="shutter-circle-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                </span>
+                                <span>Pose &amp; Snap</span>
                             </button>
                             <button id="btnCancelBooth" class="btn btn-cancel hidden">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -183,15 +226,15 @@
                     <!-- RIGHT: TEMPLATE PANEL -->
                     <div class="glass-card template-panel">
                         <div class="tp-header">
-                            <span class="section-eyebrow">Template</span>
+                            <span class="section-eyebrow">Your photo strip</span>
                             <span class="badge-pill" id="activeTemplateBadge">Selected</span>
                         </div>
 
                         <!-- LIVE TICKET PREVIEW -->
                         <div class="ticket-preview-card">
                             <div class="tp-preview-header">
-                                <span class="tp-preview-label">Live Preview</span>
-                                <span class="tp-preview-tag" id="ticketStatusPill">Real-time</span>
+                                <span class="tp-preview-label">Print preview</span>
+                                <span class="tp-preview-tag" id="ticketStatusPill">Preview</span>
                             </div>
                             <div class="ticket-canvas-wrapper">
                                 <canvas id="liveTicketCanvas"></canvas>
@@ -231,7 +274,7 @@
                         <!-- PSD SLOT DETECTION WARNING NOTICE -->
                         <div class="psd-warning-notice">
                             <div class="pwarn-header">
-                                <span class="pwarn-icon">⚠️</span>
+                                <span class="pwarn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                                 <span class="pwarn-title">Important PSD Photo Slots Notice</span>
                             </div>
                             <p class="pwarn-desc">
@@ -244,13 +287,13 @@
                             </div>
                         </div>
 
-                        <div class="dropzone" id="psdDropzone">
+                        <div class="dropzone" id="psdDropzone" role="button" tabindex="0" aria-label="Choose a PSD, PNG or JPG template">
                             <div class="dz-icon">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
                             </div>
                             <p class="dz-title">Drag & Drop File Here</p>
                             <p class="dz-sub">or click to browse</p>
-                            <input type="file" id="psdFileInput" accept=".psd,.png,.jpg,.jpeg" class="hidden">
+                            <input type="file" id="psdFileInput" accept=".psd,.png,.jpg,.jpeg" class="hidden" aria-label="Upload PSD or image template">
                         </div>
 
                         <div class="import-form glass-panel">
@@ -304,13 +347,28 @@
                 <div class="glass-card gallery-container">
                     <div class="gallery-header">
                         <div>
-                            <h2 class="gallery-title">Session Gallery</h2>
-                            <p class="gallery-sub">All saved photobooth sessions</p>
+                            <h2 class="gallery-title">Session Gallery &amp; Order Tracker</h2>
+                            <p class="gallery-sub">All saved photobooth sessions with live payment &amp; handover status</p>
                         </div>
-                        <button id="btnRefreshGallery" class="icon-btn">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                            Refresh
-                        </button>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="gallery-filter-chips" style="display:flex;gap:6px;">
+                                <button type="button" class="btn btn-sm gallery-filter-btn active" data-filter="all" style="font-size:11.5px;padding:4px 10px;">All</button>
+                                <button type="button" class="btn btn-sm gallery-filter-btn" data-filter="unpaid" style="font-size:11.5px;padding:4px 10px;color:#fca5a5;border-color:rgba(239,68,68,0.3);">⚠ Unpaid</button>
+                                <button type="button" class="btn btn-sm gallery-filter-btn" data-filter="not_given" style="font-size:11.5px;padding:4px 10px;color:#cbd5e1;border-color:rgba(203,213,225,0.25);">○ Not Given</button>
+                            </div>
+                            <button id="btnRefreshGallery" class="icon-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                Refresh
+                            </button>
+                            <button id="btnSyncSheets" class="icon-btn" title="Sync latest payment & handover statuses from Google Sheets" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:#86efac;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                                <span>Sync Sheets</span>
+                            </button>
+                            <button id="btnRepairDriveGallery" class="icon-btn" title="Fix and re-upload photos that had Drive permission errors" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span>Fix Drive Links</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="gallery-grid" id="galleryGrid"></div>
                 </div>
@@ -320,43 +378,160 @@
             <section id="tab-settings" class="tab-content">
                 <div class="settings-layout">
 
-                    <!-- VISUALIZER LAUNCHER -->
-                    <div class="viz-banner glass-card">
-                        <div class="viz-banner-glow"></div>
-                        <div class="viz-banner-content">
-                            <div class="viz-banner-icon">🎛️</div>
-                            <div>
-                                <div class="viz-banner-title">Audio Visualizer</div>
-                                <div class="viz-banner-sub">Avee-player style · Circle · Bars · Waveform · Particles</div>
-                            </div>
-                        </div>
-                        <button id="btnOpenVisualizer" class="btn btn-gradient btn-sm" onclick="window.open('/visualizer','_blank','width=1280,height=800')">
-                            Open Visualizer
-                        </button>
-                    </div>
-
                     <div class="settings-grid">
 
-                        <!-- CAMERA CARD -->
-                        <div class="glass-card settings-card">
-                            <div class="settings-card-head">
-                                <span class="scard-icon scard-icon-cam">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                                </span>
-                                <h3 class="scard-title">Camera &amp; Video</h3>
+                        <!-- LEFT COLUMN: CAMERA & SOUND SETTINGS -->
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            <!-- CAMERA CARD -->
+                            <div class="glass-card settings-card">
+                                <div class="settings-card-head">
+                                    <span class="scard-icon scard-icon-cam">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                                    </span>
+                                    <h3 class="scard-title">Camera &amp; Video</h3>
+                                </div>
+                                <div class="settings-group">
+                                    <label class="settings-label" for="cameraSelect">Active Device</label>
+                                    <select id="cameraSelect" class="form-select">
+                                        <option value="">Detecting cameras...</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                        <label class="settings-label" for="micSelect" style="margin:0;">Microphone (Raw Video Audio)</label>
+                                        <span id="micStatusBadge" class="badge-pill" style="font-size:0.68rem;padding:2px 8px;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Mic Ready</span>
+                                    </div>
+                                    <div style="display:flex;gap:8px;align-items:center;">
+                                        <select id="micSelect" class="form-select" style="flex:1;">
+                                            <option value="auto">Auto / Camera Mic (Default)</option>
+                                            <option value="none">Mute / No Audio</option>
+                                        </select>
+                                        <button id="btnRequestMic" type="button" class="icon-btn" title="Grant or refresh microphone permission">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                            Enable Mic
+                                        </button>
+                                    </div>
+                                    <span style="display:block;font-size:9.5px;color:var(--t3);margin-top:4px;">Records camera or external microphone audio with the live session raw video.</span>
+                                </div>
+                                <div class="settings-group">
+                                    <label class="settings-label">Actions</label>
+                                    <div class="settings-actions-row">
+                                        <button id="btnRefreshCameras" class="icon-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Refresh</button>
+                                        <button id="btnToggleMirror" class="icon-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Mirror: ON</button>
+                                        <button id="btnTestCamera" class="icon-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Test Feed</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="settings-group">
-                                <label class="settings-label" for="cameraSelect">Active Device</label>
-                                <select id="cameraSelect" class="form-select">
-                                    <option value="">Detecting cameras...</option>
-                                </select>
-                            </div>
-                            <div class="settings-group">
-                                <label class="settings-label">Actions</label>
-                                <div class="settings-actions-row">
-                                    <button id="btnRefreshCameras" class="icon-btn">🔄 Refresh</button>
-                                    <button id="btnToggleMirror" class="icon-btn">🪞 Mirror: ON</button>
-                                    <button id="btnTestCamera" class="icon-btn">🔍 Test Feed</button>
+
+                            <!-- SOUND & VOLUME CONTROLS CARD -->
+                            <div class="glass-card settings-card" id="settingsAudioCard">
+                                <div class="settings-card-head" style="display:flex;align-items:center;justify-content:space-between;">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span class="scard-icon" style="background:rgba(34,197,94,0.15);color:var(--g)">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                        </span>
+                                        <div>
+                                            <h3 class="scard-title" style="margin:0;">Sound &amp; Volume Levels</h3>
+                                            <p class="scard-sub" style="margin:0;">Voice prompts, music &amp; camera sound effects</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="btnMuteAllAudio" class="btn btn-ghost btn-sm" style="font-size:10.5px;padding:3px 9px;height:24px;border:1px solid var(--b2);border-radius:999px;" title="Mute all channels">
+                                        Mute All (0%)
+                                    </button>
+                                </div>
+
+                                <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+                                    <!-- 1. VOICE VOLUME -->
+                                    <div class="volume-channel-row" style="background:rgba(255,255,255,0.02);border:1px solid var(--b1);border-radius:10px;padding:9px 12px;">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                            <div style="display:flex;align-items:center;gap:7px;">
+                                                <span style="color:var(--cyan);display:inline-flex;">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                                </span>
+                                                <span style="font-size:11.5px;font-weight:600;color:var(--t1)">Voice Guide &amp; Prompts</span>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:6px;">
+                                                <span id="voiceVolumeBadge" class="edition-pill" style="font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(56,189,248,0.22);color:#38bdf8;box-shadow:0 0 8px rgba(56,189,248,0.35)">200%</span>
+                                                <button type="button" id="btnTestVoiceAudio" class="icon-btn" style="padding:2px 7px;font-size:10px;height:21px;gap:3px;" title="Test Voice Prompt">
+                                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Test
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <span id="voiceVolumeIcon" style="color:var(--t3);display:inline-flex;width:15px;align-items:center;justify-content:center;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                            </span>
+                                            <input type="range" id="voiceVolumeSlider" min="0" max="200" value="200" step="1" class="apple-volume-slider" style="flex:1;" list="voiceVolumeTicks">
+                                            <datalist id="voiceVolumeTicks">
+                                                <option value="0"></option>
+                                                <option value="50"></option>
+                                                <option value="100"></option>
+                                                <option value="150"></option>
+                                                <option value="200"></option>
+                                            </datalist>
+                                        </div>
+                                        <span style="display:block;font-size:9.5px;color:var(--t3);margin-top:3px;">Countdown voice, pose prompts, and session completion voice (up to 200% boost).</span>
+                                    </div>
+
+                                    <!-- 2. MUSIC VOLUME -->
+                                    <div class="volume-channel-row" style="background:rgba(255,255,255,0.02);border:1px solid var(--b1);border-radius:10px;padding:9px 12px;">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                            <div style="display:flex;align-items:center;gap:7px;">
+                                                <span style="color:var(--g);display:inline-flex;">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                                </span>
+                                                <span style="font-size:11.5px;font-weight:600;color:var(--t1)">Background Music</span>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:6px;">
+                                                <span id="musicVolumeBadge" class="edition-pill" style="font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,0.06);color:var(--t3)">0%</span>
+                                                <button type="button" id="btnToggleMusicPlayback" class="icon-btn" style="padding:2px 7px;font-size:10px;height:21px;gap:3px;" title="Play / Pause Background Music">
+                                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <span id="musicVolumeIcon" style="color:var(--t3);display:inline-flex;width:15px;align-items:center;justify-content:center;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                                            </span>
+                                            <input type="range" id="musicVolumeSlider" min="0" max="100" value="0" step="1" class="apple-volume-slider" style="flex:1;">
+                                        </div>
+                                        <span style="display:block;font-size:9.5px;color:var(--t3);margin-top:3px;">Background playlist audio (syncs with bottom player bar).</span>
+                                    </div>
+
+                                    <!-- 3. OTHER SOUND / SFX VOLUME -->
+                                    <div class="volume-channel-row" style="background:rgba(255,255,255,0.02);border:1px solid var(--b1);border-radius:10px;padding:9px 12px;">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                            <div style="display:flex;align-items:center;gap:7px;">
+                                                <span style="color:#f59e0b;display:inline-flex;">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                                </span>
+                                                <span style="font-size:11.5px;font-weight:600;color:var(--t1)">Sound Effects (SFX)</span>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:6px;">
+                                                <span id="sfxVolumeBadge" class="edition-pill" style="font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(245,158,11,0.25);color:#fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.35)">200%</span>
+                                                <button type="button" id="btnTestSfxAudio" class="icon-btn" style="padding:2px 7px;font-size:10px;height:21px;gap:3px;" title="Test Camera Shutter Sound">
+                                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Snap
+                                                </button>
+                                                <button type="button" id="btnTestBeepAudio" class="icon-btn" style="padding:2px 7px;font-size:10px;height:21px;gap:3px;" title="Test Countdown Beep Sound">
+                                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Beep
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <span id="sfxVolumeIcon" style="color:var(--t3);display:inline-flex;width:15px;align-items:center;justify-content:center;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                            </span>
+                                            <input type="range" id="sfxVolumeSlider" min="0" max="200" value="200" step="1" class="apple-volume-slider" style="flex:1;" list="sfxVolumeTicks">
+                                            <datalist id="sfxVolumeTicks">
+                                                <option value="0"></option>
+                                                <option value="50"></option>
+                                                <option value="100"></option>
+                                                <option value="150"></option>
+                                                <option value="200"></option>
+                                            </datalist>
+                                        </div>
+                                        <span style="display:block;font-size:9.5px;color:var(--t3);margin-top:3px;">Camera shutter snapshot sound, countdown ticks, and fanfare (up to 200% boost).</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -373,18 +548,60 @@
                                 </div>
                             </div>
                             <div class="settings-group">
-                                <label class="settings-label" for="googleSheetsUrlInput">Google Sheets Queue Database URL</label>
-                                <input type="text" id="googleSheetsUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
-                                <span class="form-help-text">Live updates queue numbers &amp; session logs in real time.</span>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                    <label class="settings-label" for="googleSheetsUrlInput" style="margin:0">Google Sheets Webhook URL (script.google.com)</label>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <button type="button" id="btnOpenSheetsGuide" class="btn btn-secondary btn-sm" style="font-size:10.5px;padding:2px 8px;height:24px;border-color:var(--b2);color:var(--g);gap:4px;">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            Setup Guide &amp; Script
+                                        </button>
+                                        <a id="linkOpenGoogleSheet" href="https://docs.google.com/spreadsheets/d/1vnvwA4cXxwS7fQusdmmNi3FCN7xNB75fSa9JF3ZtaBs/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="link-chip" style="font-size:11px;color:var(--g);display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                            Open Sheet
+                                        </a>
+                                    </div>
+                                </div>
+                                <input type="text" id="googleSheetsUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec" value="https://docs.google.com/spreadsheets/d/1vnvwA4cXxwS7fQusdmmNi3FCN7xNB75fSa9JF3ZtaBs/edit?gid=0#gid=0">
+                                <div id="sheetsUrlNoticeBox" style="margin-top:6px;padding:8px 10px;border-radius:6px;background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3);font-size:11px;color:#fef08a;line-height:1.4;">
+                                    ⚠️ <strong>Spreadsheet Viewer URL Detected:</strong> Google prevents direct uploads to <code>docs.google.com</code> without a Webhook. Click <strong>"Setup Guide &amp; Script"</strong> above to paste your 1-click Google Apps Script and get your <code>script.google.com</code> URL!
+                                </div>
+                                <span class="form-help-text" style="display:block;margin-top:4px;">Appends rows with Queue #, Guest Name, Paid Status, Print Status, and uploads photos to Google Drive.</span>
                             </div>
                             <div class="settings-group">
-                                <label class="settings-label" for="googleDriveUrlInput">Google Drive Folder / Cloud Import URL</label>
-                                <input type="text" id="googleDriveUrlInput" class="form-input" placeholder="https://drive.google.com/drive/folders/...">
-                                <span class="form-help-text">Link for uploading templates via cloud or syncing output photos.</span>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                    <label class="settings-label" for="googleDriveUrlInput" style="margin:0">Google Drive Folder URL / Folder ID</label>
+                                     <a id="linkOpenGoogleDrive" href="https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk" target="_blank" rel="noopener noreferrer" class="link-chip" style="font-size:11px;color:#60a5fa;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                        Open Drive
+                                    </a>
+                                </div>
+                                <input type="text" id="googleDriveUrlInput" class="form-input" placeholder="https://drive.google.com/drive/folders/..." value="https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk">
+                                <span class="form-help-text">Captured photo strips are automatically saved here via Google Apps Script.</span>
                             </div>
+
+                            <!-- GOOGLE DRIVE QR PREVIEW CHIP -->
+                            <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-lg);padding:12px;display:flex;align-items:center;gap:14px;margin-bottom:14px">
+                                <div style="background:#fff;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;width:64px;height:64px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.3)">
+                                    <img src="/static/img/drive_qr.png" alt="Google Drive QR" style="width:100%;height:100%;object-fit:contain;display:block">
+                                </div>
+                                <div style="flex:1;min-width:0">
+                                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                                        <span style="font-size:12px;font-weight:700;color:var(--t1)">Google Drive QR Code</span>
+                                        <span class="edition-pill" style="font-size:9.5px;padding:2px 7px;background:var(--gdim);color:var(--g);border-radius:999px;font-weight:700">Active</span>
+                                    </div>
+                                    <p style="font-size:11px;color:var(--t3);margin:0;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                        Scans to: <a href="https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk" target="_blank" style="color:var(--t2)">drive.google.com/.../1RVezpDehiH</a>
+                                    </p>
+                                </div>
+                                <a href="/static/img/drive_qr.png" target="_blank" class="btn btn-secondary btn-sm" style="font-size:11px;padding:0 10px;height:28px">View QR</a>
+                            </div>
+
                             <div class="settings-actions-row">
-                                <button id="btnSaveCloudConfig" class="btn btn-gradient btn-sm">💾 Save Settings</button>
-                                <button id="btnTestQueueSync" class="btn btn-secondary btn-sm">⚡ Test Queue Sync</button>
+                                <button id="btnSaveCloudConfig" class="btn btn-gradient btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Settings</button>
+                                <button id="btnTestQueueSync" class="btn btn-secondary btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Test Connection</button>
+                                <button id="btnRepairDriveSettings" class="btn btn-secondary btn-sm" style="border-color:rgba(59,130,246,0.4);color:#93c5fd" title="Re-upload photos that had Drive permission error"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Fix &amp; Re-upload to Drive</button>
+                                <button id="btnOpenRawFolderSettings" class="btn btn-secondary btn-sm" title="Open RAW Clips &amp; Pictures Folder in Windows File Explorer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> RAW Clips Folder</button>
+                                <button id="btnOpenResetQueueModal" class="btn btn-secondary btn-sm" style="border-color:rgba(239,68,68,0.4);color:#fca5a5" title="Reset Queue Counter (Booth, Google Sheets &amp; Drive)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Reset Queue</button>
                             </div>
                         </div>
 
@@ -411,7 +628,7 @@
                                 <div class="music-search-row">
                                     <div class="search-wrap">
                                         <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                        <input type="text" id="musicSearchInput" class="search-input" placeholder="Search songs...">
+                                        <input type="text" id="musicSearchInput" class="search-input" placeholder="Search songs..." aria-label="Search songs">
                                     </div>
                                     <div class="source-pills">
                                         <button class="filter-pill-btn active" data-source="all">All</button>
@@ -419,7 +636,7 @@
                                         <button class="filter-pill-btn" data-source="youtube">YouTube</button>
                                         <button class="filter-pill-btn" data-source="custom">Local</button>
                                     </div>
-                                    <button id="btnRefreshPlaylist" class="icon-btn">🔄</button>
+                                    <button id="btnRefreshPlaylist" class="icon-btn" title="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg></button>
                                 </div>
                                 <div id="musicPlaylistContainer" class="playlist-list"></div>
                             </div>
@@ -429,9 +646,9 @@
                                 <div class="music-search-row">
                                     <div class="search-wrap">
                                         <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists...">
+                                        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists..." aria-label="Search playlists">
                                     </div>
-                                    <button id="btnRefreshPlaylistsTab" class="icon-btn">🔄</button>
+                                    <button id="btnRefreshPlaylistsTab" class="icon-btn" title="Refresh"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg></button>
                                 </div>
                                 <div id="playlistsGridContainer" class="playlists-grid"></div>
                             </div>
@@ -444,23 +661,23 @@
                                     <button id="tabUploadMp3" class="import-tab import-tab-local">Local MP3</button>
                                 </div>
                                 <div id="spotifyImportForm" class="settings-group">
-                                    <label class="settings-label spotify-label">Spotify Link or Track Title</label>
+                                    <label class="settings-label spotify-label" for="spotifyUrlInput">Spotify Link or Track Title</label>
                                     <div class="import-input-row">
                                         <input type="text" id="spotifyUrlInput" class="form-input" placeholder="https://open.spotify.com/track/...">
                                         <button id="btnImportSpotify" class="btn btn-spotify">Import</button>
                                     </div>
                                 </div>
                                 <div id="youtubeImportForm" class="settings-group hidden">
-                                    <label class="settings-label youtube-label">YouTube Link or Song Name</label>
+                                    <label class="settings-label youtube-label" for="youtubeUrlInput">YouTube Link or Song Name</label>
                                     <div class="import-input-row">
                                         <input type="text" id="youtubeUrlInput" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
                                         <button id="btnImportYoutube" class="btn btn-youtube">Import</button>
                                     </div>
                                 </div>
                                 <div id="uploadMp3Form" class="settings-group hidden">
-                                    <label class="settings-label local-label">Upload MP3 File</label>
+                                    <label class="settings-label local-label" for="localMp3FileInput">Upload MP3 File</label>
                                     <div class="import-input-row">
-                                        <input type="file" id="localMp3FileInput" accept=".mp3,.m4a,.wav,.ogg,.flac,.aac" class="form-input">
+                                        <input type="file" id="localMp3FileInput" accept=".mp3,.m4a,.wav,.ogg,.flac,.aac" class="form-input" aria-label="Upload audio file">
                                         <button id="btnUploadLocalMp3" class="btn btn-local">Upload</button>
                                     </div>
                                 </div>
@@ -470,31 +687,35 @@
                             <div class="spotify-player-bar">
                                 <div class="sp-left">
                                     <div class="sp-album-art">
-                                        <span id="spArtIcon">🎵</span>
-                                        <div id="audioVisualizerBars" class="eq-bars hidden">
-                                            <span class="eq-bar bar1"></span>
-                                            <span class="eq-bar bar2"></span>
-                                            <span class="eq-bar bar3"></span>
-                                            <span class="eq-bar bar4"></span>
-                                        </div>
+                                        <span id="spArtIcon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
                                     </div>
                                     <div class="sp-track-info">
                                         <div class="sp-track-title-row">
                                             <span id="playerTrackTitle">Select a track</span>
-                                            <span class="sp-verified-check">✔</span>
+                                            <span class="sp-verified-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                                         </div>
                                         <span id="playerTrackArtist" class="sp-track-artist">PSSC Background Music</span>
                                     </div>
                                 </div>
                                 <div class="sp-center">
                                     <div class="sp-controls-row">
-                                        <button id="playerBtnShuffle" class="sp-icon-btn" title="Shuffle">🔀</button>
-                                        <button id="playerBtnPrev" class="sp-icon-btn" title="Previous">⏮</button>
-                                        <button id="playerBtnPlayPause" class="sp-play-circle" title="Play/Pause">
-                                            <span id="spPlayIcon">▶</span>
+                                        <button id="playerBtnShuffle" class="sp-icon-btn" title="Shuffle">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
                                         </button>
-                                        <button id="playerBtnNext" class="sp-icon-btn" title="Next">⏭</button>
-                                        <button id="playerBtnRepeat" class="sp-icon-btn" title="Repeat">🔁</button>
+                                        <button id="playerBtnPrev" class="sp-icon-btn" title="Previous">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                                        </button>
+                                        <button id="playerBtnPlayPause" class="sp-play-circle" title="Play/Pause">
+                                            <span id="spPlayIcon">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                            </span>
+                                        </button>
+                                        <button id="playerBtnNext" class="sp-icon-btn" title="Next">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                                        </button>
+                                        <button id="playerBtnRepeat" class="sp-icon-btn" title="Repeat">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                                        </button>
                                     </div>
                                     <div style="text-align:center;min-height:16px;margin-top:2px">
                                         <span id="playerModeStatusBadge" class="player-mode-badge"></span>
@@ -502,17 +723,19 @@
                                     <div class="sp-timeline-row">
                                         <span id="playerCurrentTime" class="sp-time">0:00</span>
                                         <div class="sp-scrubber-wrapper">
-                                            <input type="range" id="playerScrubber" min="0" max="100" value="0" step="0.1" class="sp-scrubber-range">
+                                            <input type="range" id="playerScrubber" aria-label="Track position" min="0" max="100" value="0" step="0.1" class="sp-scrubber-range">
                                             <div id="spScrubberFill" class="sp-scrubber-fill" style="width:0%"></div>
                                         </div>
                                         <span id="playerTotalDuration" class="sp-time">0:00</span>
                                     </div>
                                 </div>
                                 <div class="sp-right">
-                                    <span id="playerSourceTag" class="sp-source-badge">🟢 Spotify</span>
+                                    <span id="playerSourceTag" class="sp-source-badge">Spotify</span>
                                     <div class="sp-volume-wrapper">
-                                        <button id="btnToggleBgMusic" class="sp-icon-btn" title="Mute">🔊</button>
-                                        <input type="range" id="bgMusicVolume" min="0" max="1" step="0.05" value="0.35" class="sp-volume-range">
+                                        <button id="btnToggleBgMusic" class="sp-icon-btn" title="Unmute">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                                        </button>
+                                        <input type="range" id="bgMusicVolume" aria-label="Music volume" min="0" max="1" step="0.01" value="0" class="sp-volume-range">
                                     </div>
                                 </div>
                             </div>
@@ -526,56 +749,333 @@
     </div><!-- .main-area -->
 </div><!-- .app-shell -->
 
-<!-- ════ RESULT MODAL ════ -->
-<div id="resultModal" class="modal-backdrop hidden">
-    <div class="modal-card glass-card animate-pop">
+<!-- ════ RESULT MODAL / REVIEW & PRINT LOUNGE ════ -->
+<div id="resultModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="resultModalHeading">
+    <div class="modal-card review-lounge-card glass-card animate-pop">
         <div class="modal-header">
-            <h2>🎉 Session Complete!</h2>
-            <button class="modal-close" id="btnCloseModal">
+            <div class="review-title-group">
+                <h2 id="resultModalHeading">Session Complete</h2>
+            </div>
+            <button class="modal-close" id="btnCloseModal" title="Close">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body review-lounge-body">
+            <!-- Left: Strip Artwork Preview -->
             <div class="result-image-wrapper">
-                <img id="resultImage" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Photobooth Output">
+                <div class="strip-stage">
+                    <img id="resultImage" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Photobooth Output">
+                </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <a id="btnDownloadResult" href="" download="" class="btn btn-gradient">⬇ Download PNG</a>
-            <button id="btnPrintResult" class="btn btn-secondary">🖨 Print</button>
-            <button id="btnCloseModalBtn" class="btn btn-ghost">Close</button>
+
+            <!-- Right: Interactive Print & QR Mobile Deck -->
+            <div class="review-controls-deck">
+                <!-- Live Queue & Order Tracker Card -->
+                <div class="deck-card tracker-status-card" style="margin-bottom:12px;">
+                    <div class="deck-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="deck-card-title">Queue &amp; Order Tracker</span>
+                        <span class="deck-card-badge" id="modalQueueBadge" style="background:var(--gdim);color:var(--g);border:1px solid var(--bg1);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px;">Queue #1</span>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <div style="flex:1;">
+                            <span style="display:block;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--t3);">Payment</span>
+                            <div class="status-toggle-pills" style="display:flex;gap:5px;">
+                                <button type="button" class="btn btn-sm" id="btnModalPaid" style="flex:1;font-size:11px;padding:5px 6px;border-radius:6px;background:rgba(34,197,94,0.2);border:1px solid #22c55e;color:#86efac;font-weight:700;">✓ Paid</button>
+                                <button type="button" class="btn btn-sm" id="btnModalUnpaid" style="flex:1;font-size:11px;padding:5px 6px;border-radius:6px;background:var(--s2);border:1px solid var(--b2);color:var(--t3);">Not Paid</button>
+                            </div>
+                        </div>
+                        <div style="flex:1;">
+                            <span style="display:block;margin-bottom:4px;font-size:11px;font-weight:600;color:var(--t3);">Photo Print Handed</span>
+                            <div class="status-toggle-pills" style="display:flex;gap:5px;">
+                                <button type="button" class="btn btn-sm" id="btnModalGiven" style="flex:1;font-size:11px;padding:5px 6px;border-radius:6px;background:var(--s2);border:1px solid var(--b2);color:var(--t3);">✓ Given</button>
+                                <button type="button" class="btn btn-sm" id="btnModalNotGiven" style="flex:1;font-size:11px;padding:5px 6px;border-radius:6px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-weight:700;">Not Given</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Print Station Card -->
+                <div class="deck-card print-station-card">
+                    <div class="deck-card-header">
+                        <span class="deck-card-title">Print Physical Strips</span>
+                        <span class="deck-card-badge">Instant</span>
+                    </div>
+                    <p class="deck-card-desc">Select how many printed copies you'd like for your group.</p>
+                    <div class="print-stepper-row">
+                        <span class="stepper-label">Copies:</span>
+                        <div class="stepper-control">
+                            <button id="btnCopiesDec" class="btn-stepper" title="Decrease copies">-</button>
+                            <span id="printCopiesVal" class="stepper-val">1</span>
+                            <button id="btnCopiesInc" class="btn-stepper" title="Increase copies">+</button>
+                        </div>
+                    </div>
+                    <button id="btnPrintResult" class="btn btn-gradient btn-lg btn-block">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        <span>Print (1 Copy)</span>
+                    </button>
+                </div>
+
+                <!-- Digital Smartphone Download Card -->
+                <div class="deck-card qr-download-card">
+                    <div class="deck-card-header">
+                        <span class="deck-card-title">Save to Phone</span>
+                        <span class="deck-card-badge">QR Code</span>
+                    </div>
+                    <div class="qr-body">
+                        <div class="qr-code-frame" id="resultQrCodeContainer">
+                            <img id="resultQrCodeImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" alt="Scan QR Code" class="qr-img">
+                        </div>
+                        <div class="qr-instructions">
+                            <p>Scan with your phone's camera to download your high-res photostrip directly.</p>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                                <a id="btnDownloadResult" href="" download="" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Download Direct PNG
+                                </a>
+                                <button id="btnOpenRawFolderResult" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;" title="Open RAW Clips &amp; Photos Folder in Windows File Explorer">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                    RAW Clips Folder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Finish -->
+                <div class="deck-actions">
+                    <button id="btnFinishAndNewSession" class="btn btn-primary btn-block">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Finish &amp; Start Next Guest
+                    </button>
+                    <button id="btnCloseModalBtn" class="btn btn-ghost btn-sm">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- ════ PLAYLIST MODAL ════ -->
-<div id="playlistDetailModal" class="modal-backdrop hidden">
+<div id="playlistDetailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="plModalTitle">
     <div class="modal-card glass-card animate-pop" style="max-width:600px;width:92%">
         <div class="modal-header">
             <div style="display:flex;align-items:center;gap:10px">
-                <span id="plModalIcon" style="font-size:1.4rem">📜</span>
+                <span id="plModalIcon" style="display:inline-flex;align-items:center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                </span>
                 <div>
                     <h2 id="plModalTitle" style="margin:0;font-size:1rem">Playlist</h2>
-                    <span id="plModalSub" style="font-size:0.72rem;color:var(--t3)">Select a song to play</span>
+                    <span id="plModalSub" style="font-size:0.72rem;color:var(--t3)">Select a track to play</span>
                 </div>
             </div>
-            <button class="modal-close" id="btnClosePlaylistModal">
+            <button class="modal-close" id="btnClosePlaylistModal" aria-label="Close playlist">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
         <div class="modal-body" style="flex-direction:column;gap:12px;padding-top:8px">
             <div class="search-wrap" style="width:100%">
                 <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="playlistModalSearch" class="search-input" placeholder="Search songs...">
+                <input type="text" id="playlistModalSearch" class="search-input" placeholder="Search songs..." aria-label="Search songs in playlist">
             </div>
             <div id="playlistModalTracksContainer" class="playlist-list" style="max-height:360px"></div>
         </div>
         <div class="modal-footer" style="justify-content:space-between">
             <div style="display:flex;gap:8px">
-                <button id="btnPlayAllInPlaylist" class="btn btn-sm btn-gradient">▶ Play All</button>
-                <button id="btnDeleteEntirePlaylist" class="btn btn-sm btn-danger hidden">🗑 Delete</button>
+                <button id="btnPlayAllInPlaylist" class="btn btn-sm btn-gradient" style="display:inline-flex;align-items:center;gap:6px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    Play All
+                </button>
+                <button id="btnDeleteEntirePlaylist" class="btn btn-sm btn-danger hidden" style="display:inline-flex;align-items:center;gap:6px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Delete
+                </button>
             </div>
             <button id="btnClosePlaylistModalBtn" class="btn btn-ghost btn-sm">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════ RESET QUEUE MODAL ════ -->
+<div id="resetQueueModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="resetQueueTitle">
+    <div class="modal-card glass-card animate-pop" style="max-width:440px;width:92%">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:10px">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,0.15);color:#ef4444">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                </span>
+                <div>
+                    <h2 id="resetQueueTitle" style="margin:0;font-size:1rem;color:var(--t1)">Reset Queue Counter</h2>
+                    <span style="font-size:0.72rem;color:var(--t3)">Reset local booth, Google Sheets &amp; Drive</span>
+                </div>
+            </div>
+            <button class="modal-close" id="btnCloseResetQueueModal" title="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" style="flex-direction:column;gap:14px;padding-top:12px">
+            <p style="font-size:0.84rem;color:var(--t2);line-height:1.45;margin:0">
+                This resets the sequential queue counter for the photobooth. All upcoming sessions will count sequentially starting from this number.
+            </p>
+            <div class="settings-group" style="margin-bottom:0">
+                <label class="settings-label" for="resetQueueStartNum">Starting Queue Number</label>
+                <input type="number" id="resetQueueStartNum" class="form-input" value="1" min="1" style="font-size:1.15rem;font-weight:700;text-align:center;letter-spacing:1px">
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;font-size:0.75rem;color:var(--t3);display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:6px">
+                    <span style="width:6px;height:6px;border-radius:50%;background:var(--cyan)"></span>
+                    <span><strong>Photobooth:</strong> Resets next ticket to <span id="resetQueuePreviewBadge" style="color:var(--cyan);font-weight:700">Queue #1</span></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#10b981"></span>
+                    <span><strong>Google Sheets:</strong> Linked to spreadsheet (<a href="https://docs.google.com/spreadsheets/d/1vnvwA4cXxwS7fQusdmmNi3FCN7xNB75fSa9JF3ZtaBs/edit?gid=0#gid=0" target="_blank" style="color:var(--g);text-decoration:none">Open Sheet</a>)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#3b82f6"></span>
+                    <span><strong>Google Drive:</strong> Linked to folder with QR code active (<a href="https://drive.google.com/drive/folders/1RVezpDehiH95Be-shltRgJhUAZsuNcrk" target="_blank" style="color:#60a5fa;text-decoration:none">Open Drive</a>)</span>
+                </div>
+            </div>
+            <div id="resetQueueNoticeBox" class="hidden" style="font-size:0.78rem;padding:8px 12px;border-radius:6px;border:1px solid transparent;line-height:1.4"></div>
+        </div>
+        <div class="modal-footer" style="justify-content:flex-end;gap:10px">
+            <button id="btnCancelResetQueue" class="btn btn-ghost btn-sm">Cancel</button>
+            <button id="btnConfirmResetQueue" class="btn btn-danger btn-sm" style="display:inline-flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Confirm Reset
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════ GOOGLE SHEETS & DRIVE SETUP GUIDE MODAL ════ -->
+<div id="sheetsGuideModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetsGuideTitle">
+    <div class="modal-card glass-card animate-pop" style="max-width:720px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;padding:22px 24px;">
+        <div class="modal-header" style="flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--b1);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(34,197,94,0.15);color:var(--g);flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>
+                </span>
+                <div style="min-width:0;">
+                    <h2 id="sheetsGuideTitle" style="margin:0;font-size:1.05rem;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Google Sheets &amp; Drive 1-Click Sync Setup</h2>
+                    <span style="font-size:0.75rem;color:var(--t3);display:block;">Automate live queue tracking, payment status &amp; Google Drive photo uploads</span>
+                </div>
+            </div>
+            <button class="modal-close" id="btnCloseSheetsGuideModal" title="Close" style="flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;align-items:stretch;width:100%;min-width:0;box-sizing:border-box;gap:14px;padding:0;overflow-y:auto;overflow-x:hidden;">
+            <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:12px 14px;font-size:0.8rem;color:var(--t2);line-height:1.5;box-sizing:border-box;width:100%;">
+                <strong style="color:var(--g)">Why is this needed?</strong> Google blocks external apps from sending direct POST data to spreadsheet links. Google Apps Script takes 60 seconds to set up and automatically:
+                <ul style="margin:6px 0 0 18px;padding:0;">
+                    <li>Appends rows with <strong>Timestamp</strong>, <strong>Queue #</strong>, <strong>Guest Name</strong>, <strong>Payment Status</strong>, and <strong>Print Handed Status</strong>.</li>
+                    <li>Creates a dedicated session folder in your <strong>Google Drive Folder</strong> (e.g. <code>Queue #16 - Guest - 2026-10-04 23-19-03</code>) for every photobooth session.</li>
+                    <li>Uploads the <strong>Final Ticket</strong>, all <strong>RAW Camera Photos</strong>, and the <strong>RAW Video Recording</strong> directly into the session folder!</li>
+                    <li>Adds direct Google Drive session folder links right in your Google Sheet!</li>
+                </ul>
+            </div>
+
+            <!-- Steps -->
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:0.82rem;color:var(--t2);width:100%;box-sizing:border-box;">
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:var(--g);color:#000;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">1</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;">
+                        <strong style="color:var(--t1)">Open your Google Sheet:</strong><br>
+                        Click here to open: <a href="https://docs.google.com/spreadsheets/d/1vnvwA4cXxwS7fQusdmmNi3FCN7xNB75fSa9JF3ZtaBs/edit?gid=0#gid=0" target="_blank" style="color:var(--g);text-decoration:underline;font-weight:600;">Open Your Event Sheet</a>.
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:var(--g);color:#000;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">2</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;">
+                        <strong style="color:var(--t1)">Open Apps Script:</strong><br>
+                        In Google Sheets menu bar, click <strong>Extensions</strong> → <strong>Apps Script</strong>.
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:var(--g);color:#000;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">3</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;">
+                        <strong style="color:var(--t1)">Paste the Webhook Code:</strong><br>
+                        Delete whatever is in the editor, click <strong>Copy Script Code</strong> below, paste it into the editor, and click <strong>Save</strong> (floppy disk icon):
+                        <div style="margin-top:8px;border:1px solid var(--b1);border-radius:8px;overflow:hidden;background:#09090b;box-sizing:border-box;width:100%;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--b1);padding:6px 12px;box-sizing:border-box;">
+                                <span style="font-size:11px;color:var(--t3);font-family:monospace;">Code.gs</span>
+                                <button type="button" id="btnCopyAppsScript" class="btn btn-sm btn-gradient" style="font-size:11px;padding:4px 10px;height:26px;display:inline-flex;align-items:center;gap:5px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    Copy Script Code
+                                </button>
+                            </div>
+                            <pre id="appsScriptCodeBlock" style="color:#a1a1aa;padding:10px 12px;max-height:150px;overflow-x:auto;overflow-y:auto;font-size:10.5px;line-height:1.45;margin:0;box-sizing:border-box;white-space:pre;width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:#3b82f6;color:#fff;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">4</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;line-height:1.5;">
+                        <strong style="color:#93c5fd">⚡ Authorize Google Drive Access (CRITICAL):</strong><br>
+                        <em>Fixes "Tinanggihang bigyan ng access: DriveApp"</em>:<br>
+                        • At the top of Apps Script, select <strong><code>authorizeAndTestDrive</code></strong> in the function dropdown (beside Run ▶️).<br>
+                        • Click <strong>Run</strong> (or <strong>Patakbuhin</strong> ▶️).<br>
+                        • Google will show <em>"Authorization Required" (Kailangan ng pahintulot)</em> → Click <strong>Review permissions</strong>.<br>
+                        • Choose your Google Account → Click <strong>Advanced</strong> → Click <strong>Go to Untitled project (unsafe)</strong> → Click <strong>Allow</strong> (Payagan).<br>
+                        • Execution Log will confirm: <code>✅ Google Drive Authorized Successfully!</code>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:var(--g);color:#000;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">5</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;line-height:1.5;">
+                        <strong style="color:var(--t1)">Deploy or Update New Version:</strong><br>
+                        Click <strong>Deploy</strong> (top right) → <strong>Manage deployments</strong>:<br>
+                        • Click the pencil icon ✏️ next to your deployment.<br>
+                        • Under <strong>Version</strong>, choose <strong>New version</strong> (Bagong bersyon).<br>
+                        • Make sure Execute as = <strong>Me</strong> and Who has access = <strong style="color:var(--g)">Anyone</strong>.<br>
+                        • Click <strong>Deploy</strong>. (Your Webhook URL remains the exact same!)
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;width:100%;box-sizing:border-box;">
+                    <span style="background:var(--g);color:#000;font-weight:700;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px;">6</span>
+                    <div style="flex:1;min-width:0;box-sizing:border-box;line-height:1.5;">
+                        <strong style="color:var(--t1)">Fix Existing Rows &amp; Test:</strong><br>
+                        Paste that URL into Settings and click <strong>Test Connection</strong>. Then click <strong>"Fix Drive Links"</strong> in the Gallery to re-upload previously affected photos to Google Drive and update your sheet rows!
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="flex-shrink:0;padding-top:12px;border-top:1px solid var(--b1);margin-top:12px;justify-content:flex-end;">
+            <button id="btnCloseSheetsGuideModalBtn" class="btn btn-primary btn-sm" style="padding:6px 18px;">Got it</button>
+        </div>
+    </div>
+</div>
+
+<!-- RAW Clips & Photos Viewer Modal -->
+<div id="rawViewerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="rawModalHeading">
+    <div class="modal modal-lg" style="max-width:860px;max-height:92vh;display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--b2);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+        <div class="modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--b1);">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📁</div>
+                <div style="min-width:0;">
+                    <h2 id="rawModalHeading" style="margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px;color:var(--t1);">
+                        <span>RAW Clips &amp; Photos</span>
+                        <span id="rawModalQueueBadge" class="deck-card-badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;">Queue #--</span>
+                    </h2>
+                    <div id="rawModalPath" style="font-size:0.75rem;color:var(--t3);margin-top:2px;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px;" title="Target folder path">C:\Users\Niko\Downloads\RAW CLIPS AND PICTURES</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <button id="btnRawModalOpenExplorer" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 12px;border-color:rgba(59,130,246,0.4);color:#60a5fa;font-weight:600;" title="Open this folder on your computer in Windows File Explorer">
+                    <span>🗁</span> Open File Explorer
+                </button>
+                <button class="modal-close" id="btnCloseRawModal" title="Close" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;padding:4px 8px;">✕</button>
+            </div>
+        </div>
+
+        <div class="modal-body custom-scroll" id="rawModalContent" style="flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:18px;">
+            <div style="text-align:center;padding:30px;color:var(--t3);">Loading raw files...</div>
+        </div>
+
+        <div class="modal-footer" style="flex-shrink:0;padding:12px 20px;border-top:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.15);">
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--t3);">
+                <span>💾 Auto-saved to:</span>
+                <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:#93c5fd;">Downloads\RAW CLIPS AND PICTURES</code>
+            </div>
+            <button id="btnCloseRawModalBtn" class="btn btn-ghost btn-sm" style="padding:6px 16px;">Close</button>
         </div>
     </div>
 </div>
@@ -583,41 +1083,6 @@
 <script src="/js/app.js"></script>
 <script>
 (function(){
-    // Ripple effect on buttons
-    document.addEventListener('click', function(e){
-        const btn = e.target.closest('.btn,.nav-btn,.filter-btn,.icon-btn,.music-tab,.import-tab');
-        if(!btn) return;
-        const r = btn.getBoundingClientRect();
-        const rip = document.createElement('span');
-        const sz = Math.max(r.width,r.height)*2;
-        rip.style.cssText=`position:absolute;border-radius:50%;pointer-events:none;z-index:9999;width:${sz}px;height:${sz}px;left:${e.clientX-r.left-sz/2}px;top:${e.clientY-r.top-sz/2}px;background:rgba(255,255,255,0.18);transform:scale(0);animation:rippleAnim 0.5s ease-out forwards;`;
-        btn.style.position='relative'; btn.style.overflow='hidden';
-        btn.appendChild(rip);
-        setTimeout(()=>rip.remove(),550);
-    });
-    const rs=document.createElement('style');
-    rs.textContent='@keyframes rippleAnim{to{transform:scale(1);opacity:0;}}';
-    document.head.appendChild(rs);
-
-    // Stagger card animations
-    const io = new IntersectionObserver(entries=>{
-        entries.forEach(e=>{
-            if(e.isIntersecting){
-                const el=e.target;
-                el.style.animationDelay=(parseInt(el.dataset.si||0)*55)+'ms';
-                el.classList.add('anim-in');
-                io.unobserve(el);
-            }
-        });
-    },{threshold:0.05});
-    const watchCards=()=>{
-        document.querySelectorAll('.gallery-card,.template-card').forEach((el,i)=>{
-            if(!el.dataset.si){el.dataset.si=i;io.observe(el);}
-        });
-    };
-    new MutationObserver(watchCards).observe(document.body,{childList:true,subtree:true});
-    watchCards();
-
     // Topbar title sync
     document.querySelectorAll('.nav-btn').forEach(btn=>{
         btn.addEventListener('click',()=>{

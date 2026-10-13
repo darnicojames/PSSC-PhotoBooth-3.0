@@ -114,5 +114,98 @@ def create_sample_templates():
         )
         print("Created template: Neon Cyberpunk 2x2")
 
+    # 3. SEED BUNDLED TEMPLATES IF PRESENT IN static/uploads AND static/previews
+    bundled_templates = [
+        {
+            "name": "template1",
+            "filename": "70d16e25_template1.psd",
+            "psd_path": "70d16e25_template1.psd",
+            "preview_path": "prev_9ba927f2.png",
+            "overlay_path": "overlay_9ba927f2.png",
+            "width": 403,
+            "height": 1143,
+            "slots": [
+                {"x": 22, "y": 191, "w": 359, "h": 236, "order": 1, "label": "Pic 1 (Orange)"},
+                {"x": 22, "y": 443, "w": 359, "h": 236, "order": 2, "label": "Pic 2 (Red)"},
+                {"x": 21, "y": 694, "w": 360, "h": 237, "order": 3, "label": "Pic 3 (Blue)"}
+            ]
+        },
+        {
+            "name": "template2",
+            "filename": "9ad73491_template2.psd",
+            "psd_path": "9ad73491_template2.psd",
+            "preview_path": "prev_48a8f9e2.png",
+            "overlay_path": "overlay_48a8f9e2.png",
+            "width": 407,
+            "height": 1147,
+            "slots": [
+                {"x": 35, "y": 210, "w": 340, "h": 238, "order": 1, "label": "Pic 1 (Orange)"},
+                {"x": 35, "y": 496, "w": 340, "h": 238, "order": 2, "label": "Pic 2 (Red)"},
+                {"x": 35, "y": 781, "w": 340, "h": 238, "order": 3, "label": "Pic 3 (Blue)"}
+            ]
+        },
+        {
+            "name": "template3",
+            "filename": "ac2dd3a7_template3.psd",
+            "psd_path": "ac2dd3a7_template3.psd",
+            "preview_path": "prev_efcc665d.png",
+            "overlay_path": "overlay_efcc665d.png",
+            "width": 406,
+            "height": 1143,
+            "slots": [
+                {"x": 29, "y": 108, "w": 340, "h": 238, "order": 1, "label": "Pic 1 (Orange)"},
+                {"x": 29, "y": 395, "w": 340, "h": 238, "order": 2, "label": "Pic 2 (Red)"},
+                {"x": 29, "y": 680, "w": 340, "h": 238, "order": 3, "label": "Pic 3 (Blue)"}
+            ]
+        },
+        {
+            "name": "WTM-Cartoon",
+            "filename": "b665d30d_Photo Strips (5).psd",
+            "psd_path": "b665d30d_Photo Strips (5).psd",
+            "preview_path": "prev_9eba4726.png",
+            "overlay_path": "overlay_9eba4726.png",
+            "width": 409,
+            "height": 1077,
+            "slots": [
+                {"x": 41, "y": 117, "w": 333, "h": 216, "order": 1, "label": "Photo 1"},
+                {"x": 40, "y": 352, "w": 335, "h": 216, "order": 2, "label": "Photo 2"},
+                {"x": 41, "y": 589, "w": 333, "h": 217, "order": 3, "label": "Photo 3"}
+            ]
+        },
+        {
+            "name": "WTM-Gold_Version",
+            "filename": "ef72e08b_Photo Strips (4).psd",
+            "psd_path": "ef72e08b_Photo Strips (4).psd",
+            "preview_path": "prev_b1e6f814.png",
+            "overlay_path": "overlay_b1e6f814.png",
+            "width": 373,
+            "height": 1077,
+            "slots": [
+                {"x": 20, "y": 115, "w": 333, "h": 216, "order": 1, "label": "Photo 1"},
+                {"x": 20, "y": 350, "w": 335, "h": 216, "order": 2, "label": "Photo 2"},
+                {"x": 20, "y": 587, "w": 333, "h": 217, "order": 3, "label": "Photo 3"}
+            ]
+        }
+    ]
+
+    all_current = {t['name'] for t in database.get_all_templates()}
+    for bt in bundled_templates:
+        if bt['name'] not in all_current:
+            psd_full = os.path.join(UPLOAD_DIR, bt['filename'])
+            prev_full = os.path.join(PREVIEW_DIR, bt['preview_path'])
+            if os.path.exists(psd_full) and os.path.exists(prev_full):
+                database.save_template(
+                    name=bt['name'],
+                    filename=bt['filename'],
+                    psd_path=bt['psd_path'],
+                    preview_path=bt['preview_path'],
+                    overlay_path=bt['overlay_path'],
+                    width=bt['width'],
+                    height=bt['height'],
+                    slots=bt['slots']
+                )
+                print(f"Seeded bundled template: {bt['name']}")
+
 if __name__ == '__main__':
     create_sample_templates()
+

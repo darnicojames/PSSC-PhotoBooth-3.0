@@ -24,43 +24,48 @@ instance/
 .webassets-cache
 
 # Generated session output files
-sessions/
-uploads/
-previews/
+/sessions/
+/uploads/
+/previews/
+static/sessions/
 
-# All audio/music files — voice guides and music library (too large for git)
-audio/
-static/audio/
+# Allow static uploads & previews (templates and overlays)
+!static/uploads/
+!static/uploads/**
+!static/previews/
+!static/previews/**
+
+# Imported music files (exclude music from YouTube / Spotify / custom uploads)
+audio/yt_*.mp3
+audio/music_library/
+audio/music.mp3
+audio/temp_*.mp3
+audio/temp_yt_*.mp3
+static/audio/music.mp3
 scratch_audio/
 
 # Binaries / FFmpeg
 bin/
 
-# Keep the audio folder placeholder
-!audio/.gitkeep
-
-# Database / data files
+# Database / data files (never commit session data or databases)
 *.db
 *.sqlite
 *.sqlite3
 music_library.db
+database/*.db
 
 # Logs & Scratch files
 *.log
 *.txt
+scratch/
 scratch_*
-photobooth-layout.psd
 mobile-view.html
 
 # OS metadata
 .DS_Store
 Thumbs.db
-logs/
-
-# OS
-.DS_Store
-Thumbs.db
 desktop.ini
+logs/
 
 # IDE
 .vscode/

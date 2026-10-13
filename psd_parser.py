@@ -25,13 +25,15 @@ def parse_psd_file(psd_path, upload_dir, preview_dir):
 
             layer_slots = []
             for layer in psd.descendants():
+                if layer.kind == 'type':
+                    continue  # Ignore text labels, slots must be graphic placeholder shapes/boxes
                 name_lower = layer.name.lower() if layer.name else ""
                 if any(kw in name_lower for kw in ['photo', 'slot', 'picture', 'camera', 'window', 'pic 1', 'pic 2', 'pic 3']):
                     bbox = layer.bbox
                     if bbox:
                         w = bbox[2] - bbox[0]
                         h = bbox[3] - bbox[1]
-                        if w > 20 and h > 20:
+                        if w > 60 and h > 60:
                             layer_slots.append({
                                 'x': int(bbox[0]),
                                 'y': int(bbox[1]),
@@ -70,6 +72,35 @@ def parse_psd_file(psd_path, upload_dir, preview_dir):
                     s['x'] = max(0, s['x'] - crop_x)
                     s['y'] = max(0, s['y'] - crop_y)
 
+    # AUTO CROP PRINT-SHEET WHITE PADDING (e.g. 1685x1191 canvas with vertical strip in center)
+    if composite.width > composite.height and composite.width > 800:
+        rgb_img = composite.convert('RGB')
+        corners = [
+            rgb_img.getpixel((0, 0)),
+            rgb_img.getpixel((composite.width - 1, 0)),
+            rgb_img.getpixel((0, composite.height - 1)),
+            rgb_img.getpixel((composite.width - 1, composite.height - 1))
+        ]
+        if all(c[0] > 240 and c[1] > 240 and c[2] > 240 for c in corners):
+            min_x, min_y = composite.width, composite.height
+            max_x, max_y = 0, 0
+            step = 4
+            for y in range(0, composite.height, step):
+                for x in range(0, composite.width, step):
+                    r, g, b = rgb_img.getpixel((x, y))
+                    if r < 240 or g < 240 or b < 240:
+                        if x < min_x: min_x = x
+                        if x > max_x: max_x = x
+                        if y < min_y: min_y = y
+                        if y > max_y: max_y = y
+            if max_x > min_x + 100 and max_y > min_y + 300:
+                strip_box = (min_x, min_y, max_x + 1, max_y + 1)
+                composite = composite.crop(strip_box)
+                # Re-detect slots on cropped strip
+                slots = detect_colored_slots(composite)
+                if not slots:
+                    slots = detect_transparent_slots(composite)
+
     width, height = composite.size
 
     # Fallback layout if still no slots found
@@ -81,10 +112,34 @@ def parse_psd_file(psd_path, upload_dir, preview_dir):
     preview_path = os.path.join(preview_dir, preview_filename)
     composite.save(preview_path, 'PNG')
 
-    # Save overlay PNG
+    # Save overlay PNG with placeholder colors cleared and decorative overlaps preserved
     overlay_filename = f"overlay_{file_id}.png"
     overlay_path = os.path.join(preview_dir, overlay_filename)
-    composite.save(overlay_path, 'PNG')
+    overlay = composite.copy().convert('RGBA')
+
+    def is_placeholder_color(r, g, b):
+        if abs(r - 189) < 50 and abs(g - 105) < 50 and abs(b - 255) < 50: return True
+        if abs(r - 23) < 50 and abs(g - 134) < 50 and abs(b - 255) < 50: return True
+        if abs(r - 0) < 50 and abs(g - 191) < 50 and abs(b - 99) < 50: return True
+        if r > 190 and 120 < g < 220 and b < 70: return True
+        if r > 180 and g < 75 and b < 75: return True
+        if r < 60 and 110 < g < 210 and b > 180: return True
+        if r < 45 and g < 45 and b < 45: return True
+        if b > 120 and r > 80 and g < 90: return True
+        return False
+
+    for s in slots:
+        sx, sy, sw, sh = s['x'], s['y'], s['w'], s['h']
+        margin = 6
+        for y in range(sy + margin, min(height, sy + sh - margin)):
+            for x in range(sx + margin, min(width, sx + sw - margin)):
+                r, g, b, a = overlay.getpixel((x, y))
+                if a > 0:
+                    is_gold = (r > 140 and g > 100 and b < 110 and r >= g - 25)
+                    if not is_gold or is_placeholder_color(r, g, b):
+                        overlay.putpixel((x, y), (0, 0, 0, 0))
+
+    overlay.save(overlay_path, 'PNG')
 
     return {
         'width': width,
@@ -98,17 +153,26 @@ def detect_colored_slots(composite_img):
     img = composite_img.convert('RGB')
     w, h = img.size
     
-    orange_pts, red_pts, blue_pts = [], [], []
-    step = 5
+    purple_pts, blue_pts, green_pts = [], [], []
+    orange_pts, red_pts, alt_blue_pts = [], [], []
+    step = 4
     for y in range(0, h, step):
         for x in range(0, w, step):
             r, g, b = img.getpixel((x, y))
-            if r > 180 and 90 < g < 230 and b < 100:
+            # WTM Palette: Purple, Blue, Green
+            if abs(r - 189) < 40 and abs(g - 105) < 40 and abs(b - 255) < 40:
+                purple_pts.append((x, y))
+            elif abs(r - 23) < 40 and abs(g - 134) < 40 and abs(b - 255) < 40:
+                blue_pts.append((x, y))
+            elif abs(r - 0) < 40 and abs(g - 191) < 40 and abs(b - 99) < 40 and y > (h * 0.45):
+                green_pts.append((x, y))
+            # Legacy Palette: Orange, Red, Blue
+            elif r > 180 and 90 < g < 230 and b < 100:
                 orange_pts.append((x, y))
             elif r > 180 and g < 90 and b < 90:
                 red_pts.append((x, y))
             elif r < 100 and g < 180 and b > 170:
-                blue_pts.append((x, y))
+                alt_blue_pts.append((x, y))
 
     def bbox_from_points(pts, order, label):
         if not pts or len(pts) < 15:
@@ -117,8 +181,8 @@ def detect_colored_slots(composite_img):
         ys = [p[1] for p in pts]
         min_x, max_x = min(xs), max(xs)
         min_y, max_y = min(ys), max(ys)
-        bw = max_x - min_x
-        bh = max_y - min_y
+        bw = max_x - min_x + 1
+        bh = max_y - min_y + 1
         if bw > 40 and bh > 40:
             return {
                 'x': min_x,
@@ -131,13 +195,19 @@ def detect_colored_slots(composite_img):
         return None
 
     slots = []
-    b1 = bbox_from_points(orange_pts, 1, 'Pic 1 (Orange)')
-    b2 = bbox_from_points(red_pts, 2, 'Pic 2 (Red)')
-    b3 = bbox_from_points(blue_pts, 3, 'Pic 3 (Blue)')
-
-    for b in [b1, b2, b3]:
-        if b:
-            slots.append(b)
+    # Check WTM Purple/Blue/Green palette first
+    b1 = bbox_from_points(purple_pts, 1, 'PIC 1 (Purple)')
+    b2 = bbox_from_points(blue_pts, 2, 'PIC 2 (Blue)')
+    b3 = bbox_from_points(green_pts, 3, 'PIC 3 (Green)')
+    if b1 and b2 and b3:
+        slots = [b1, b2, b3]
+    else:
+        # Fall back to legacy Orange/Red/Blue
+        o1 = bbox_from_points(orange_pts, 1, 'Pic 1 (Orange)')
+        o2 = bbox_from_points(red_pts, 2, 'Pic 2 (Red)')
+        o3 = bbox_from_points(alt_blue_pts, 3, 'Pic 3 (Blue)')
+        for b in [o1, o2, o3]:
+            if b: slots.append(b)
 
     return slots
 

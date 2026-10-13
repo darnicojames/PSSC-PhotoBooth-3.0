@@ -6,9 +6,9 @@ A modern, professional **photobooth web application** built with Python (Flask) 
 
 ## ✨ Key Features
 
-### 🟢 Modern Dark Aesthetic & UX
-- **Green × Black × White Theme**: Pure black `#000000` base with Apple-style glassmorphism cards and vibrant `#00e676` PSSC green accents.
-- **Fluid Micro-Animations**: Smooth spring transitions, glowing ambient background orbs, click ripple feedback, and live status badges.
+### 🟢 Interface & Experience
+- **Green × Black × White Palette**: Pure black `#000000` base with clean, high-contrast surfaces and vibrant `#00e676` PSSC green accents.
+- **Accessible & Responsive**: High-contrast typography meeting WCAG AA standards, clean focus outlines, and keyboard navigation support.
 
 ### 🎟️ Sequential Queue Tracking System
 - **Queue Numbering**: Sequential `#1`, `#2`, `#3` counter replacing legacy random alphanumeric codes.
